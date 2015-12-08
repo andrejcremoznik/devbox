@@ -1,6 +1,6 @@
 #!/bin/bash
 
-github_configs="https://raw.github.com/andrejcremoznik/devbox/raw/master/configs/"
+github_configs="https://github.com/andrejcremoznik/devbox/raw/master/configs/"
 
 echo "Installing software"
 pacman -S openssh nginx nodejs npm
