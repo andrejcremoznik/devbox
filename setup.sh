@@ -3,7 +3,7 @@
 github_configs="https://github.com/andrejcremoznik/devbox/raw/master/configs/"
 
 echo "Installing software"
-pacman -S openssh nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pear php-pgsql php-sqlite
+pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pear php-pgsql php-sqlite postfix dovecot
 
 echo "Creating normal user 'dev'"
 useradd -m -G http -s /bin/bash dev
@@ -21,15 +21,23 @@ wget -O /home/dev/.bin/composer https://getcomposer.org/composer.phar
 chmod u+x /home/dev/.bin/*
 echo -e "prefix=~/.npm_global\n" > /home/dev/.npmrc
 
+read -p "Press [Enter] to continue…"
+
 echo "Setting up .bashrc"
 wget -O /home/dev/.bashrc ${github_configs}.bashrc
+
+read -p "Press [Enter] to continue…"
 
 echo "Configuring Git"
 wget -O /home/dev/.gitconfig ${github_configs}.gitconfig
 wget -O /home/dev/.gitignore_global ${github_configs}.gitignore_global
 
+read -p "Press [Enter] to continue…"
+
 echo "Fixing file ownership"
 chown dev:dev /home/dev -R
+
+read -p "Press [Enter] to continue…"
 
 echo "Setting up Netctl"
 ip link show
@@ -41,14 +49,20 @@ echo -e "Description='Host net'\nInterface=$hInt\nConnection=ethernet\nIP=static
 netctl enable devbox-dhcp
 netctl enable devbox-host
 
+read -p "Press [Enter] to continue…"
+
 echo "Setting up SSHD"
 mv /etc/ssh/sshd_config /etc/ssh/sshd_config.old
 wget -O /etc/ssh/sshd_config ${github_configs}sshd_config
 systemctl enable sshd.service
 
+read -p "Press [Enter] to continue…"
+
 echo "Setting up time sync"
 echo -e "[Time]\nNTP=ntp1.arnes.si ntp2.arnes.si\nFallbackNTP=0.arch.pool.ntp.org 1.arch.pool.ntp.org\n" > /etc/systemd/timesyncd.conf
 timedatectl set-ntp true
+
+read -p "Press [Enter] to continue…"
 
 echo "Setting up MySQL"
 sed -i "s|log-bin=mysql-bin|#log-bin=mysql-bin|g" /etc/mysql/my.cnf
@@ -58,15 +72,70 @@ systemctl start mysqld.service
 systemctl enable mysqld.service
 mysql_secure_installation
 
-# TODO: Postgres
+read -p "Press [Enter] to continue…"
+
+echo "Setting up PostgreSQL"
+echo "Set a password for postgres user"
+passwd postgres
+su -c "initdb --locale en_US.UTF-8 -E UTF8 -D '/var/lib/postgres/data'" postgres
+systemctl start postgresql.service
+systemctl enable postgresql.service
+su -c "createuser -d -r -s dev" postgres
+su -c "createdb dev" dev
+
+read -p "Press [Enter] to continue…"
 
 echo "Setting up PHP"
 wget -O /etc/php/conf.d/devbox.ini ${github_configs}php.ini
 systemctl enable php-fpm.service
 
+read -p "Press [Enter] to continue…"
+
+echo "Setting up Mail"
+echo -e "\ninet_interfaces = loopback-only\nmynetworks_style = host\nhome_mailbox = Maildir/\ncanonical_maps = regexp:/etc/postfix/canonical-redirect\n" >> /etc/postfix/main.cf
+echo -e "/^.*$/ dev\n" > /etc/postfix/canonical-redirect
+if [ -f /etc/dovecot/dovecot.conf ]; then
+  mv /etc/dovecot/dovecot.conf /etc/dovecot/dovecot.conf.old
+fi
+wget -O /etc/dovecot/dovecot.conf ${github_configs}dovecot.conf
+
+systemctl enable postfix.service
+systemctl enable dovecot.service
+
+read -p "Press [Enter] to continue…"
+
 echo "Setting up Nginx"
-mkdir -p /srv/http/devbox.dev/{etc,webdir}
+mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.old
+mv /etc/nginx/mime.types /etc/nginx/mime.types.old
+wget -O /etc/nginx/nginx.conf ${github_configs}nginx.main.conf
+wget -O /etc/nginx/mime.types ${github_configs}mime.types
 
+read -e -p "Devbox domain: " -i "devbox.dev" domain
+mkdir -p /srv/http/${domain}/{etc,webdir}
+wget -O /srv/http/${domain}/etc/nginx.conf ${github_configs}nginx.vhost.conf
+sed -i "s/devbox.dev/${domain}/g" /srv/http/${domain}/etc/nginx.conf
 
+wget -O /srv/http/${domain}/webdir/index.html ${github_configs}index.html
 
+echo -e "<?php phpinfo();\n" > /srv/http/${domain}/webdir/phpinfo.php
+
+mkdir /srv/http/${domain}/webdir/{phpmyadmin,phppgadmin,roundcube}
+
+wget -O phpmyadmin.tar.gz https://github.com/phpmyadmin/phpmyadmin/tarball/master
+tar -zxf phpmyadmin.tar.gz -C /srv/http/${domain}/webdir/phpmyadmin --strip-components=1
+
+wget -O phppgadmin.tar.gz https://github.com/phppgadmin/phppgadmin/tarball/master
+tar -zxf phppgadmin.tar.gz -C /srv/http/${domain}/webdir/phppgadmin --strip-components=1
+
+wget -O roundcube.tar.gz https://github.com/roundcube/roundcubemail/tarball/master
+tar -zxf roundcube.tar.gz -C /srv/http/${domain}/webdir/roundcube --strip-components=1
+
+mysql -u root -pdev -e "CREATE DATABASE roundcube;"
+wget -O /srv/http/${domain}/webdir/roundcube/config/config.inc.php ${github_configs}roundcube.php
+mysql -u root -pdev roundcube < /srv/http/${domain}/webdir/roundcube/SQL/mysql.initial.sql
+chmod +rwe /srv/http/${domain}/webdir/roundcube/logs /srv/http/${domain}/webdir/roundcube/temp
+
+echo "Fixing file ownership"
 chown dev:dev /srv/http -R
+
+echo "Done. Please reboot."
