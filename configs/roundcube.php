@@ -12,5 +12,6 @@ $config = [
   'enable_spellcheck'      => false,
   'mime_param_folding'     => 0,
   'message_cache_lifetime' =>'1d',
-  'enable_installer'       => true
+  'mime_types'             => __DIR__ . '/mime.types',
+  'create_default_folders' => true
 ];

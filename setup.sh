@@ -3,7 +3,7 @@
 github_configs="https://github.com/andrejcremoznik/devbox/raw/master/configs/"
 
 echo "Installing software"
-pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pear php-pgsql php-sqlite postfix dovecot
+pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-ldap php-mcrypt php-pear php-pgsql php-sqlite pear-auth-sasl pear-net-smtp pear-net-idna2 pear-mail-mime postfix dovecot rsync screen bash-completion
 
 echo "Creating normal user 'dev'"
 useradd -m -G http -s /bin/bash dev
@@ -14,12 +14,13 @@ passwd dev
 echo "Adding user 'dev' to sudoers"
 echo -e "\ndev ALL=(ALL) ALL\n" >> /etc/sudoers
 
-echo "Setting up WP-CLI, Composer, and NPM"
-mkdir /home/dev/{.bin,.npm_global}
+echo "Setting up WP-CLI, Composer, NPM, SSH config"
+mkdir /home/dev/{.bin,.npm_global,.ssh}
 wget -O /home/dev/.bin/wp https://raw.github.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 wget -O /home/dev/.bin/composer https://getcomposer.org/composer.phar
 chmod u+x /home/dev/.bin/*
 echo -e "prefix=~/.npm_global\n" > /home/dev/.npmrc
+echo -e "host github\n  hostname github.com\n  user git" > /home/dev/.ssh/config
 
 read -p "Press [Enter] to continue…"
 
@@ -102,6 +103,8 @@ wget -O /etc/dovecot/dovecot.conf ${github_configs}dovecot.conf
 systemctl enable postfix.service
 systemctl enable dovecot.service
 
+newaliases
+
 read -p "Press [Enter] to continue…"
 
 echo "Setting up Nginx"
@@ -126,6 +129,7 @@ tar -zxf phpmyadmin.tar.gz -C /srv/http/${domain}/webdir/phpmyadmin --strip-comp
 
 wget -O phppgadmin.tar.gz https://github.com/phppgadmin/phppgadmin/tarball/master
 tar -zxf phppgadmin.tar.gz -C /srv/http/${domain}/webdir/phppgadmin --strip-components=1
+cp /srv/http/${domain}/webdir/phppgadmin/conf/config.inc.php-dist /srv/http/${domain}/webdir/phppgadmin/conf/config.inc.php
 
 wget -O roundcube.tar.gz https://github.com/roundcube/roundcubemail/tarball/master
 tar -zxf roundcube.tar.gz -C /srv/http/${domain}/webdir/roundcube --strip-components=1
@@ -133,7 +137,10 @@ tar -zxf roundcube.tar.gz -C /srv/http/${domain}/webdir/roundcube --strip-compon
 mysql -u root -pdev -e "CREATE DATABASE roundcube;"
 wget -O /srv/http/${domain}/webdir/roundcube/config/config.inc.php ${github_configs}roundcube.php
 mysql -u root -pdev roundcube < /srv/http/${domain}/webdir/roundcube/SQL/mysql.initial.sql
-chmod +rwe /srv/http/${domain}/webdir/roundcube/logs /srv/http/${domain}/webdir/roundcube/temp
+chmod a+rwx /srv/http/${domain}/webdir/roundcube/logs /srv/http/${domain}/webdir/roundcube/temp
+wget -O /srv/http/${domain}/webdir/roundcube/config/mime.types http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
+
+systemctl enable nginx.service
 
 echo "Fixing file ownership"
 chown dev:dev /srv/http -R
