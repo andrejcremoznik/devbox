@@ -23,8 +23,8 @@ alias rdchmod='find . -type d -print0 | xargs -0 chmod 755'
 export EDITOR=nano
 export VISUAL=nano
 
+# $PATH
+PATH=$HOME/bin:$HOME/npm_global/bin:$PATH
+
 # Prompt
 PS1='[\u@\h \W]\$ '
-
-# $PATH
-PATH=$HOME/.bin:$HOME/.npm_global/bin:$PATH

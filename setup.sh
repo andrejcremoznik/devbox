@@ -15,11 +15,11 @@ echo "Adding user 'dev' to sudoers"
 echo -e "\ndev ALL=(ALL) ALL\n" >> /etc/sudoers
 
 echo "Setting up WP-CLI, Composer, NPM, SSH config"
-mkdir /home/dev/{.bin,.npm_global,.ssh}
-wget -O /home/dev/.bin/wp https://raw.github.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-wget -O /home/dev/.bin/composer https://getcomposer.org/composer.phar
-chmod u+x /home/dev/.bin/*
-echo -e "prefix=~/.npm_global\n" > /home/dev/.npmrc
+mkdir /home/dev/{bin,npm_global,.ssh}
+wget -O /home/dev/bin/wp https://raw.github.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+wget -O /home/dev/bin/composer https://getcomposer.org/composer.phar
+chmod u+x /home/dev/bin/*
+echo -e "prefix=~/npm_global\n" > /home/dev/.npmrc
 echo -e "host github\n  hostname github.com\n  user git" > /home/dev/.ssh/config
 
 read -p "Press [Enter] to continue…"
@@ -36,7 +36,7 @@ wget -O /home/dev/.gitignore_global ${github_configs}.gitignore_global
 read -p "Press [Enter] to continue…"
 
 echo "Fixing file ownership"
-chown dev:dev /home/dev -R
+chown -R dev:dev /home/dev
 
 read -p "Press [Enter] to continue…"
 
@@ -99,10 +99,8 @@ if [ -f /etc/dovecot/dovecot.conf ]; then
   mv /etc/dovecot/dovecot.conf /etc/dovecot/dovecot.conf.old
 fi
 wget -O /etc/dovecot/dovecot.conf ${github_configs}dovecot.conf
-
 systemctl enable postfix.service
 systemctl enable dovecot.service
-
 newaliases
 
 read -p "Press [Enter] to continue…"
@@ -112,14 +110,11 @@ mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.old
 mv /etc/nginx/mime.types /etc/nginx/mime.types.old
 wget -O /etc/nginx/nginx.conf ${github_configs}nginx.main.conf
 wget -O /etc/nginx/mime.types ${github_configs}mime.types
-
 read -e -p "Devbox domain: " -i "devbox.dev" domain
 mkdir -p /srv/http/${domain}/{etc,webdir}
 wget -O /srv/http/${domain}/etc/nginx.conf ${github_configs}nginx.vhost.conf
 sed -i "s/devbox.dev/${domain}/g" /srv/http/${domain}/etc/nginx.conf
-
 wget -O /srv/http/${domain}/webdir/index.html ${github_configs}index.html
-
 echo -e "<?php phpinfo();\n" > /srv/http/${domain}/webdir/phpinfo.php
 
 mkdir /srv/http/${domain}/webdir/{phpmyadmin,phppgadmin,roundcube}
@@ -143,6 +138,6 @@ wget -O /srv/http/${domain}/webdir/roundcube/config/mime.types http://svn.apache
 systemctl enable nginx.service
 
 echo "Fixing file ownership"
-chown dev:dev /srv/http -R
+chown -R dev:dev /srv/http
 
-echo "Done. Please reboot."
+echo "Done. Please reboot the VM and add '$hIP $domain' to /etc/hosts on your host machine."

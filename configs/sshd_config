@@ -6,3 +6,4 @@ ChallengeResponseAuthentication no
 UsePAM yes
 AllowAgentForwarding yes
 PrintMotd no
+Subsystem sftp /usr/lib/ssh/sftp-server
