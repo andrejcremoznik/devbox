@@ -3,7 +3,7 @@
 github_configs="https://github.com/andrejcremoznik/devbox/raw/master/configs/"
 
 echo "==> Installing software"
-pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pgsql php-sqlite pear-auth-sasl pear-net-smtp pear-net-idna2 pear-mail-mime postfix dovecot rsync screen bash-completion
+pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pgsql php-sqlite pear-auth-sasl pear-net-smtp pear-net-idna2 pear-mail-mime postfix dovecot rsync screen bash-completion vim ncdu
 
 echo "==> Creating normal user 'dev'"
 useradd -m -G http -s /bin/bash dev
@@ -50,6 +50,12 @@ systemctl enable sshd.service
 echo "==> Setting up time sync"
 echo -e "[Time]\nNTP=ntp1.arnes.si ntp2.arnes.si\nFallbackNTP=0.arch.pool.ntp.org 1.arch.pool.ntp.org\n" > /etc/systemd/timesyncd.conf
 timedatectl set-ntp true
+
+echo "==> Configuring Journal daemon"
+echo -e "\nSystemMaxUse=16MB\nMaxRetentionSec=10day\nForwardToSyslog=no\n" >> /etc/systemd/journald.conf
+systemctl stop systemd-journald
+rm -fr /var/log/journal/*
+systemctl start systemd-journald
 
 echo "==> Setting up MySQL"
 sed -i "s|log-bin=mysql-bin|#log-bin=mysql-bin|g" /etc/mysql/my.cnf
