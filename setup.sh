@@ -3,7 +3,7 @@
 github_configs="https://github.com/andrejcremoznik/devbox/raw/master/configs/"
 
 echo "==> Installing software"
-pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pgsql php-sqlite pear-auth-sasl pear-net-smtp pear-net-idna2 pear-mail-mime postfix dovecot rsync screen bash-completion vim ncdu
+pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pgsql php-sqlite postfix dovecot rsync screen bash-completion vim ncdu
 
 echo "==> Creating normal user 'dev'"
 useradd -m -G http -s /bin/bash dev
