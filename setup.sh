@@ -1,22 +1,16 @@
 #!/bin/bash
 
-github_configs="https://github.com/andrejcremoznik/devbox/raw/master/configs/"
+github_configs="https://raw.githubusercontent.com/andrejcremoznik/devbox/master/configs/"
 
-echo "==> Installing software"
+read -p "==> Install software"
 pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pgsql php-sqlite postfix dovecot rsync screen bash-completion ncdu
 
-echo "==> Creating normal user 'dev'"
+read -p "==> Create normal user 'dev' and set its password"
 useradd -m -G http -s /bin/bash dev
-
-echo "==> Set password for user 'dev'"
 passwd dev
-
-echo "==> Adding user 'dev' to sudoers"
 echo -e "\ndev ALL=(ALL) ALL\n" >> /etc/sudoers
 
-read -p "Continue?"
-
-echo "==> Setting up WP-CLI, Composer, NPM, SSH config"
+read -p "==> Set up WP-CLI, Composer, NPM, SSH config"
 mkdir /home/dev/{bin,npm_global,.ssh}
 wget -O /home/dev/bin/wp https://raw.github.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 wget -O /home/dev/bin/composer https://getcomposer.org/composer.phar
@@ -24,25 +18,17 @@ chmod u+x /home/dev/bin/*
 echo -e "prefix=~/npm_global\n" > /home/dev/.npmrc
 echo -e "host github\n  hostname github.com\n  user git" > /home/dev/.ssh/config
 
-read -p "Continue?"
-
-echo "==> Setting up .bashrc"
+read -p "==> Set up .bashrc"
 wget -O /home/dev/.bashrc ${github_configs}bashrc
 
-read -p "Continue?"
-
-echo "==> Configuring Git"
+read -p "==> Configure Git"
 wget -O /home/dev/.gitconfig ${github_configs}gitconfig
 wget -O /home/dev/.gitignore_global ${github_configs}gitignore_global
 
-read -p "Continue?"
-
-echo "==> Fixing file ownership in /home/dev"
+read -p "==> Fix file ownership in /home/dev"
 chown -R dev:dev /home/dev
 
-read -p "Continue?"
-
-echo "==> Setting up Netctl"
+read -p "==> Set up Netctl"
 ip link show
 read -e -p "NAT interface: " -i "enp0s3" nInt
 read -e -p "Host-only interface: " -i "enp0s8" hInt
@@ -52,30 +38,22 @@ echo -e "Description='Host net'\nInterface=$hInt\nConnection=ethernet\nIP=static
 netctl enable devbox-dhcp
 netctl enable devbox-host
 
-read -p "Continue?"
-
-echo "==> Setting up SSHD"
+read -p "==> Set up SSHD"
 mv /etc/ssh/sshd_config /etc/ssh/sshd_config.old
 wget -O /etc/ssh/sshd_config ${github_configs}sshd_config
 systemctl enable sshd.service
 
-read -p "Continue?"
-
-echo "==> Setting up time sync"
+read -p "==> Set up time sync"
 echo -e "[Time]\nNTP=ntp1.arnes.si ntp2.arnes.si\nFallbackNTP=0.arch.pool.ntp.org 1.arch.pool.ntp.org\n" > /etc/systemd/timesyncd.conf
 timedatectl set-ntp true
 
-read -p "Continue?"
-
-echo "==> Configuring Journal daemon"
-echo -e "\nSystemMaxUse=16MB\nMaxRetentionSec=10day\nForwardToSyslog=no\n" >> /etc/systemd/journald.conf
+read -p "==> Configure Journal daemon"
+echo -e "\nSystemMaxUse=16M\nMaxRetentionSec=10day\nForwardToSyslog=no\n" >> /etc/systemd/journald.conf
 systemctl stop systemd-journald
 rm -fr /var/log/journal/*
 systemctl start systemd-journald
 
-read -p "Continue?"
-
-echo "==> Setting up MySQL"
+read -p "==> Set up MySQL"
 sed -i "s|log-bin=mysql-bin|#log-bin=mysql-bin|g" /etc/mysql/my.cnf
 sed -i "s|binlog_format=mixed|#binlog_format=mixed|g" /etc/mysql/my.cnf
 mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
@@ -83,9 +61,7 @@ systemctl start mysqld.service
 systemctl enable mysqld.service
 mysql_secure_installation
 
-read -p "Continue?"
-
-echo "==> Setting up PostgreSQL"
+read -p "==> Set up PostgreSQL"
 echo "Set a password for postgres user"
 passwd postgres
 su -c "initdb --locale en_US.UTF-8 -E UTF8 -D '/var/lib/postgres/data'" postgres
@@ -94,15 +70,11 @@ systemctl enable postgresql.service
 su -c "createuser -d -r -s dev" postgres
 su -c "createdb dev" dev
 
-read -p "Continue?"
-
-echo "==> Setting up PHP"
+read -p "==> Set up PHP"
 wget -O /etc/php/conf.d/devbox.ini ${github_configs}php.ini
 systemctl enable php-fpm.service
 
-read -p "Continue?"
-
-echo "==> Setting up Postfix and Dovecot"
+read -p "==> Set up Postfix and Dovecot"
 echo -e "\ninet_interfaces = loopback-only\nmynetworks_style = host\nhome_mailbox = Maildir/\ncanonical_maps = regexp:/etc/postfix/canonical-redirect\n" >> /etc/postfix/main.cf
 echo -e "/^.*$/ dev\n" > /etc/postfix/canonical-redirect
 if [ -f /etc/dovecot/dovecot.conf ]; then
@@ -113,9 +85,7 @@ systemctl enable postfix.service
 systemctl enable dovecot.service
 newaliases
 
-read -p "Continue?"
-
-echo "==> Setting up Nginx"
+read -p "==> Set up Nginx"
 mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.old
 mv /etc/nginx/mime.types /etc/nginx/mime.types.old
 wget -O /etc/nginx/nginx.conf ${github_configs}nginx.main.conf
@@ -128,23 +98,17 @@ wget -O /srv/http/${domain}/webdir/index.html ${github_configs}index.html
 echo -e "<?php phpinfo();\n" > /srv/http/${domain}/webdir/phpinfo.php
 systemctl enable nginx.service
 
-read -p "Continue?"
-
-echo "==> Setting up PhpMyAdmin"
+read -p "==> Set up PhpMyAdmin"
 mkdir /srv/http/${domain}/webdir/{phpmyadmin,phppgadmin,roundcube}
 wget -O phpmyadmin.tar.gz https://github.com/phpmyadmin/phpmyadmin/tarball/master
 tar -zxf phpmyadmin.tar.gz -C /srv/http/${domain}/webdir/phpmyadmin --strip-components=1
 
-read -p "Continue?"
-
-echo "==> Setting up PhpPgAdmin"
+read -p "==> Set up PhpPgAdmin"
 wget -O phppgadmin.tar.gz https://github.com/phppgadmin/phppgadmin/tarball/master
 tar -zxf phppgadmin.tar.gz -C /srv/http/${domain}/webdir/phppgadmin --strip-components=1
 cp /srv/http/${domain}/webdir/phppgadmin/conf/config.inc.php-dist /srv/http/${domain}/webdir/phppgadmin/conf/config.inc.php
 
-read -p "Continue?"
-
-echo "==> Setting up Roundcube"
+read -p "==> Set up Roundcube"
 wget -O roundcube.tar.gz https://github.com/roundcube/roundcubemail/tarball/master
 tar -zxf roundcube.tar.gz -C /srv/http/${domain}/webdir/roundcube --strip-components=1
 mysql -u root -pdev -e "CREATE DATABASE roundcube;"
@@ -153,9 +117,11 @@ mysql -u root -pdev roundcube < /srv/http/${domain}/webdir/roundcube/SQL/mysql.i
 chmod a+rwx /srv/http/${domain}/webdir/roundcube/logs /srv/http/${domain}/webdir/roundcube/temp
 wget -O /srv/http/${domain}/webdir/roundcube/config/mime.types http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
 
-read -p "Continue?"
-
-echo "==> Fixing file ownership in /srv/http"
+read -p "==> Fix file ownership in /srv/http"
 chown -R dev:dev /srv/http
+
+read -p "==> Cleanup pacman cache"
+pacman -Scc
+pacman-optimize
 
 echo "Done. Please reboot the VM and add '$hIP $domain' to /etc/hosts on your host machine."
