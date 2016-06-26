@@ -48,7 +48,7 @@ echo -e "[Time]\nNTP=ntp1.arnes.si ntp2.arnes.si\nFallbackNTP=0.arch.pool.ntp.or
 timedatectl set-ntp true
 
 read -p "==> Configure Journal daemon"
-echo -e "\nSystemMaxUse=16M\nMaxRetentionSec=10day\nForwardToSyslog=no\n" >> /etc/systemd/journald.conf
+echo -e "\nSystemMaxUse=16M\nForwardToSyslog=no\n" >> /etc/systemd/journald.conf
 systemctl stop systemd-journald
 rm -fr /var/log/journal/*
 systemctl start systemd-journald

@@ -7,8 +7,9 @@ PATH=$HOME/bin:$HOME/npm_global/bin:$PATH
 export HISTSIZE=5000
 export HISTFILESIZE=10000
 export HISTCONTROL=ignoreboth,ignoredups
-shopt -s histappend
 export PROMPT_COMMAND='history -a'
+shopt -s histappend
+shopt -s globstar
 
 # Aliases
 alias ls='ls --group-directories-first --time-style=+"%d.%m.%Y %H:%M" --color=auto -F'
