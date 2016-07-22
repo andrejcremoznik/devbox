@@ -3,7 +3,7 @@
 github_configs="https://raw.githubusercontent.com/andrejcremoznik/devbox/master/configs/"
 
 read -p "==> Install software"
-pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pgsql php-sqlite postfix dovecot rsync screen bash-completion ncdu
+pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pgsql php-sqlite postfix dovecot rsync screen bash-completion ncdu rmlint
 
 read -p "==> Create normal user 'dev' and set its password"
 useradd -m -G http -s /bin/bash dev
@@ -125,3 +125,4 @@ pacman -Scc
 pacman-optimize
 
 echo "Done. Please reboot the VM and add '$hIP $domain' to /etc/hosts on your host machine."
+echo "Please review the following files: ~/.gitconfig"

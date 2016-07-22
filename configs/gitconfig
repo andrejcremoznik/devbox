@@ -1,6 +1,6 @@
 [user]
-  name = Andrej Čremožnik
-  email = andrej@cremoznik.si
+  name = Your Name
+  email = your@email
 [core]
   autocrlf = input
   excludesfile = ~/.gitignore_global
