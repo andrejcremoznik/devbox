@@ -3,7 +3,7 @@
 github_configs="https://raw.githubusercontent.com/andrejcremoznik/devbox/master/configs/"
 
 read -p "==> Install software"
-pacman -S openssh wget nginx nodejs npm git tig mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pgsql php-sqlite postfix dovecot rsync screen bash-completion ncdu rmlint
+pacman -S openssh wget nginx nodejs git mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pgsql php-sqlite postfix dovecot rsync screen bash-completion
 
 read -p "==> Create normal user 'dev' and set its password"
 useradd -m -G http -s /bin/bash dev
@@ -11,19 +11,15 @@ passwd dev
 echo -e "\ndev ALL=(ALL) ALL\n" >> /etc/sudoers
 
 read -p "==> Set up WP-CLI, Composer, NPM, SSH config"
-mkdir /home/dev/{bin,npm_global,.ssh}
+mkdir /home/dev/{bin,node,.ssh}
 wget -O /home/dev/bin/wp https://raw.github.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 wget -O /home/dev/bin/composer https://getcomposer.org/composer.phar
 chmod u+x /home/dev/bin/*
-echo -e "prefix=~/npm_global\n" > /home/dev/.npmrc
+echo -e "prefix=~/node\n" > /home/dev/.npmrc
 echo -e "host github\n  hostname github.com\n  user git" > /home/dev/.ssh/config
 
 read -p "==> Set up .bashrc"
 wget -O /home/dev/.bashrc ${github_configs}bashrc
-
-read -p "==> Configure Git"
-wget -O /home/dev/.gitconfig ${github_configs}gitconfig
-wget -O /home/dev/.gitignore_global ${github_configs}gitignore_global
 
 read -p "==> Fix file ownership in /home/dev"
 chown -R dev:dev /home/dev
@@ -48,7 +44,8 @@ echo -e "[Time]\nNTP=ntp1.arnes.si ntp2.arnes.si\nFallbackNTP=0.arch.pool.ntp.or
 timedatectl set-ntp true
 
 read -p "==> Configure Journal daemon"
-echo -e "\nSystemMaxUse=16M\nForwardToSyslog=no\n" >> /etc/systemd/journald.conf
+mkdir -p /etc/systemd/journal.conf.d
+echo -e "[Journal]\nSystemMaxUse=16M" > /etc/systemd/journal.conf.d/00-journal-size.conf
 systemctl stop systemd-journald
 rm -fr /var/log/journal/*
 systemctl start systemd-journald
@@ -125,4 +122,3 @@ pacman -Scc
 pacman-optimize
 
 echo "Done. Please reboot the VM and add '$hIP $domain' to /etc/hosts on your host machine."
-echo "Please review the following files: ~/.gitconfig"
