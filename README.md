@@ -2,15 +2,39 @@
 
 Install and configure an Arch Linux VM for use as a web development environment.
 
+
 ## Instructions
 
 1. Create a new VitualBox VM for Arch and boot it from the installation ISO
 2. Install Arch following the installation guide (partition, mount, install base base-devel grub, configure hostname, locales, grub, reboot)
 3. As root run `setup.sh` and any other `setup-*`s you need
 
+
+### What does it do
+
+1. Installs `openssh wget nginx nodejs git php-fpm php-gd php-intl rsync screen bash-completion`
+2. Creates user `dev` and adds it to `sudoers`
+3. Installs Composer as `composer` and WP-CLI as `wp` for user `dev`
+4. Configures `.bashrc` and `.npmrc` for user `dev`
+5. Configures network interfaces (dhcp and host-only)
+6. Configures SSH daemon
+7. Configures automatic time sync (you might want to change the servers in `/etc/systemd/timesyncd.conf` if you're not in Slovenia)
+8. Limits Journal daemon log size
+9. Configures Nginx, creates a `devbox.dev` host
+10. Configures PHP
+
+Additionally:
+
+* `setup-mysql.sh` will install and configure `mariadb` and, optionally, set up `PhpMyAdmin` at `devbox.dev/phpmyadmin`
+* `setup-postgres.sh` will install and configure `postgresql` and, optionally, set up `PhpPgAdmin` at `devbox.dev/phppgadmin`
+* `setup-localmail.sh` will install and configure `postfix` and `dovecot` for local mail delivery and, optionally, set up `Roundcube` at `devbox.dev/roundcube`
+
+
+
 ## Disclaimer
 
 This isn't really meant to be used by anyone who didn't read and understand the script. The obvious question popping into someone's mind will be why am I not using a provisioning system. Mainly because it's just another abstraction you have learn and I didn't want to bother. This suits my needs perfectly.
+
 
 ## License - MIT
 

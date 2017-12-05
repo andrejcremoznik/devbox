@@ -83,7 +83,7 @@ timedatectl set-ntp true
 read "==> Configure Journal daemon"
 mkdir -p /etc/systemd/journal.conf.d
 echo "[Journal]
-SystemMaxUse=16M" > /etc/systemd/journal.conf.d/00-journal-size.conf
+SystemMaxUse=8M" > /etc/systemd/journal.conf.d/00-journal-size.conf
 systemctl stop systemd-journald
 rm -fr /var/log/journal/*
 systemctl start systemd-journald
@@ -171,7 +171,7 @@ extension=intl.so
 extension=mcrypt.so
 
 [Date]
-date.timezone = \"Europe/Ljubljana\"" > /etc/php/conf.d/devbox.ini
+date.timezone = \"Europe/Ljubljana\"" > /etc/php/conf.d/00-devbox.ini
 systemctl enable php-fpm.service
 
 read "==> Cleanup pacman cache"
