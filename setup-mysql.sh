@@ -15,22 +15,4 @@ echo "extension=mysqli.so
 extension=pdo_mysql.so" > /etc/php/conf.d/90-mysql.ini
 echo "Reboot or restart PHP-FPM to load the MySQL extension"
 
-pacman -Scc
-
-read -e -p "==> Install PhpMyAdmin? (y/n): " cont
-if [ "$cont" != "y" ]; then
-  exit
-fi
-
-DIR=/srv/http/devbox.dev/phpmyadmin
-
-mkdir -p ${DIR}
-
-curl -L https://github.com/phpmyadmin/phpmyadmin/tarball/master | tar zxf - --strip-components=1 -C ${DIR}
-
-echo "<li><a href=\"/phpmyadmin/\">PhpMyAdmin</a> (root / dev)</li>" >> /srv/http/devbox.dev/index.html
-
-echo "==> Fix file ownership"
-chown -R dev:dev ${DIR}
-
-echo "==> Done"
+echo "==> Done. You can install PhpMyAdmin to /srv/http/devbox.dev/phpmyadmin if you need it."

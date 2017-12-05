@@ -37,41 +37,11 @@ newaliases
 systemctl start dovecot.service
 systemctl enable dovecot.service
 
-read -e -p "==> Install Roundcube? (y/n): " cont
+read -e -p "==> Install Mutt (cli email client)? (y/n): " cont
 if [ "$cont" != "y" ]; then
   exit
 fi
 
-DIR=/srv/http/devbox.dev/roundcube
+pacman -S mutt
 
-mkdir -p ${DIR}
-
-curl -L https://github.com/roundcube/roundcubemail/tarball/master | tar zxf - --strip-components=1 -C ${DIR}
-
-mysql -u root -pdev -e "CREATE DATABASE roundcube;"
-echo "<?php
-\$config = [
-  'db_dsnw'                => 'mysql://root:dev@localhost/roundcube',
-  'default_host'           => '127.0.0.1',
-  'log_dir'                => 'logs/',
-  'temp_dir'               => 'temp/',
-  'product_name'           => 'Devbox Mail',
-  'des_key'                => 'IAmNotARandomStringButWhoCares',
-  'plugins'                => [],
-  'language'               => 'en_US',
-  'enable_spellcheck'      => false,
-  'mime_param_folding'     => 0,
-  'message_cache_lifetime' =>'1d',
-  'mime_types'             => __DIR__ . '/mime.types',
-  'create_default_folders' => true
-];" > ${DIR}/config/config.inc.php
-mysql -u root -pdev roundcube < ${DIR}/SQL/mysql.initial.sql
-chmod a+rwx ${DIR}/logs ${DIR}/temp
-wget -O ${DIR}/config/mime.types http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
-
-echo "<li><a href=\"/roundcube/\">Roundcube</a> (dev / dev)</li>" >> /srv/http/devbox.dev/index.html
-
-echo "==> Fix file ownership"
-chown -R dev:dev ${DIR}
-
-echo "==> Done"
+echo "==> Done. You can read local mail with 'mutt -f ~/Maildir'."

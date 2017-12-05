@@ -12,7 +12,7 @@ Install and configure an Arch Linux VM for use as a web development environment.
 
 ### What does it do
 
-1. Installs `openssh wget nginx nodejs git php-fpm php-gd php-intl rsync screen bash-completion`
+1. Installs `openssh nginx nodejs git php-fpm php-gd php-intl rsync bash-completion`
 2. Creates user `dev` and adds it to `sudoers`
 3. Installs Composer as `composer` and WP-CLI as `wp` for user `dev`
 4. Configures `.bashrc` and `.npmrc` for user `dev`
@@ -25,10 +25,9 @@ Install and configure an Arch Linux VM for use as a web development environment.
 
 Additionally:
 
-* `setup-mysql.sh` will install and configure `mariadb` and, optionally, set up `PhpMyAdmin` at `devbox.dev/phpmyadmin`
-* `setup-postgres.sh` will install and configure `postgresql` and, optionally, set up `PhpPgAdmin` at `devbox.dev/phppgadmin`
-* `setup-localmail.sh` will install and configure `postfix` and `dovecot` for local mail delivery and, optionally, set up `Roundcube` at `devbox.dev/roundcube`
-
+* `setup-mysql.sh` will install and configure `mariadb`
+* `setup-postgres.sh` will install and configure `postgresql`
+* `setup-localmail.sh` will install and configure `postfix` and `dovecot` for local mail delivery
 
 
 ## Disclaimer

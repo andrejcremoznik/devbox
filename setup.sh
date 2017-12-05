@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "==> Install software"
-pacman -S openssh wget nginx nodejs git php-fpm php-gd php-intl rsync screen bash-completion
+pacman -S openssh nginx nodejs git php-fpm php-gd php-intl rsync bash-completion
 
 echo "==> Create normal user 'dev' and set password"
 useradd -m -G http -s /bin/bash dev
@@ -10,8 +10,8 @@ echo -e "\ndev ALL=(ALL) ALL\n" >> /etc/sudoers
 
 echo "==> Set up WP-CLI, Composer, NPM, SSH config"
 mkdir /home/dev/{bin,node,.ssh}
-wget -O /home/dev/bin/wp https://raw.github.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-wget -O /home/dev/bin/composer https://getcomposer.org/composer.phar
+curl -o /home/dev/bin/wp -L https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+curl -o /home/dev/bin/composer -L https://getcomposer.org/composer.phar
 chmod u+x /home/dev/bin/*
 echo -e "prefix=/home/dev/node\n" > /home/dev/.npmrc
 echo -e "host github\n  hostname github.com\n  user git" > /home/dev/.ssh/config
@@ -99,30 +99,36 @@ mkdir -p /etc/nginx/{sites-available,sites-enabled}
 
 echo "user http http;
 worker_processes auto;
+worker_rlimit_nofile 8192;
 events {
   worker_connections 8000;
 }
 http {
-  include            mime.types;
-  default_type       application/octet-stream;
-  charset            utf-8;
-  charset_types text/css text/plain text/vnd.wap.wml application/javascript application/json application/rss+xml application/xml;
-  index              index.html index.php;
-  log_format  main   '\$remote_addr - \$remote_user [\$time_local] \"\$request\" '
-                     '\$status \$body_bytes_sent \"\$http_referer\" '
-                     '\"\$http_user_agent\" \"\$http_x_forwarded_for\"';
-  access_log         /var/log/nginx/access.log main;
-  error_log          /var/log/nginx/error.log error;
-  keepalive_timeout  20s;
-  sendfile           on;
-  tcp_nopush         on;
-  gzip               off;
+  include              mime.types;
+  default_type         application/octet-stream;
+  charset              utf-8;
+  charset_types
+    text/css text/plain text/vnd.wap.wml
+    application/javascript application/json application/rss+xml application/xml;
+  index                index.html index.php;
+  log_format  main     '\$remote_addr - \$remote_user [\$time_local] \"\$request\" '
+                       '\$status \$body_bytes_sent \"\$http_referer\" '
+                       '\"\$http_user_agent\" \"\$http_x_forwarded_for\"';
+  access_log           /var/log/nginx/access.log main;
+  error_log            /var/log/nginx/error.log error;
+  client_max_body_size 20m;
+  keepalive_timeout    20s;
+  sendfile             on;
+  tcp_nopush           on;
+  gzip                 off;
   server {
     listen 80 default_server;
     return 444;
   }
   include sites-enabled/*.conf;
 }" > /etc/nginx/nginx.conf
+
+curl -o /etc/nginx/mime.types2 -L https://raw.githubusercontent.com/h5bp/server-configs-nginx/master/mime.types
 
 mkdir -p /srv/http/devbox.dev
 echo "<!DOCTYPE html>
@@ -168,7 +174,6 @@ extension=gd.so
 extension=gettext.so
 extension=iconv.so
 extension=intl.so
-extension=mcrypt.so
 
 [Date]
 date.timezone = \"Europe/Ljubljana\"" > /etc/php/conf.d/00-devbox.ini

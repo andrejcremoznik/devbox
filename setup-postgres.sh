@@ -16,23 +16,4 @@ echo "extension=pdo_pgsql.so
 extension=pgsql.so" > /etc/php/conf.d/90-pgsql.ini
 echo "Reboot or restart PHP-FPM to load the PostgreSQL extension"
 
-pacman -Scc
-
-read -e -p "==> Install PhpPgAdmin? (y/n): " cont
-if [ "$cont" != "y" ]; then
-  exit
-fi
-
-DIR=/srv/http/devbox.dev/phppgadmin
-
-mkdir -p ${DIR}
-
-curl -L https://github.com/phppgadmin/phppgadmin/tarball/master | tar zxf - --strip-components=1 -C ${DIR}
-cp ${DIR}/conf/config.inc.php-dist ${DIR}/conf/config.inc.php
-
-echo "<li><a href=\"/phppgadmin/\">PhpPgAdmin</a> (dev / dev)</li>" >> /srv/http/devbox.dev/index.html
-
-echo "==> Fix file ownership"
-chown -R dev:dev ${DIR}
-
-echo "==> Done"
+echo "==> Done. You can install PhpPgAdmin to /srv/http/devbox.dev/phppgadmin if you need it."
