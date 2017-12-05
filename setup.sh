@@ -1,124 +1,181 @@
 #!/bin/bash
 
-github_configs="https://raw.githubusercontent.com/andrejcremoznik/devbox/master/configs/"
+read "==> Install software"
+pacman -S openssh wget nginx nodejs git php-fpm php-gd php-intl rsync screen bash-completion
 
-read -p "==> Install software"
-pacman -S openssh wget nginx nodejs git mariadb postgresql php php-fpm php-gd php-intl php-mcrypt php-pgsql php-sqlite postfix dovecot rsync screen bash-completion
-
-read -p "==> Create normal user 'dev' and set its password"
+read "==> Create normal user 'dev' and set password"
 useradd -m -G http -s /bin/bash dev
 passwd dev
 echo -e "\ndev ALL=(ALL) ALL\n" >> /etc/sudoers
 
-read -p "==> Set up WP-CLI, Composer, NPM, SSH config"
+read "==> Set up WP-CLI, Composer, NPM, SSH config"
 mkdir /home/dev/{bin,node,.ssh}
 wget -O /home/dev/bin/wp https://raw.github.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 wget -O /home/dev/bin/composer https://getcomposer.org/composer.phar
 chmod u+x /home/dev/bin/*
-echo -e "prefix=~/node\n" > /home/dev/.npmrc
+echo -e "prefix=/home/dev/node\n" > /home/dev/.npmrc
 echo -e "host github\n  hostname github.com\n  user git" > /home/dev/.ssh/config
 
-read -p "==> Set up .bashrc"
-wget -O /home/dev/.bashrc ${github_configs}bashrc
+read "==> Set up .bashrc"
+echo "[[ \$- != *i* ]] && return
 
-read -p "==> Fix file ownership in /home/dev"
+PATH=\$HOME/bin:\$HOME/node/bin:\$PATH
+
+export HISTSIZE=5000
+export HISTFILESIZE=10000
+export HISTCONTROL=ignoreboth,ignoredups
+export PROMPT_COMMAND='history -a'
+shopt -s histappend
+shopt -s globstar
+
+alias ls='ls -h --group-directories-first --time-style=+\"%d.%m.%Y %H:%M\" --color=auto -F'
+alias ll='ls -lh --group-directories-first --time-style=+\"%d.%m.%Y %H:%M\" --color=auto -F'
+alias la='ls -la --group-directories-first --time-style=+\"%d.%m.%Y %H:%M\" --color=auto -F'
+alias grep='grep --color=auto -d skip'
+alias cp='cp -i'
+alias mv='mv -i'
+alias ..='cd ..'
+alias df='df -h'
+
+export EDITOR=nano
+export VISUAL=nano
+
+PS1='[\\u@\\h \\W]\\\$ '" > /home/dev/.bashrc
+
+read "==> Fix file ownership in /home/dev"
 chown -R dev:dev /home/dev
 
-read -p "==> Set up Netctl"
+read "==> Set up Netctl"
 ip link show
 read -e -p "NAT interface: " -i "enp0s3" nInt
 read -e -p "Host-only interface: " -i "enp0s8" hInt
 read -e -p "Devbox IP: " -i "10.10.0." hIP
-echo -e "Description='DHCP net'\nInterface=$nInt\nConnection=ethernet\nIP=dhcp\n" > /etc/netctl/devbox-dhcp
-echo -e "Description='Host net'\nInterface=$hInt\nConnection=ethernet\nIP=static\nAddress=('$hIP/24')\nDNS=('10.10.0.1')\n" > /etc/netctl/devbox-host
+echo "Description='DHCP net'
+Interface=$nInt
+Connection=ethernet
+IP=dhcp" > /etc/netctl/devbox-dhcp
+echo "Description='Host net'
+Interface=$hInt
+Connection=ethernet
+IP=static
+Address=('$hIP/24')
+DNS=('10.10.0.1')" > /etc/netctl/devbox-host
 netctl enable devbox-dhcp
 netctl enable devbox-host
 
-read -p "==> Set up SSHD"
+read "==> Set up SSHD"
 mv /etc/ssh/sshd_config /etc/ssh/sshd_config.old
-wget -O /etc/ssh/sshd_config ${github_configs}sshd_config
+echo "Protocol 2
+PasswordAuthentication yes
+ChallengeResponseAuthentication no
+UsePAM yes
+AllowAgentForwarding yes
+PrintMotd no
+Subsystem sftp /usr/lib/ssh/sftp-server" > /etc/ssh/sshd_config
 systemctl enable sshd.service
 
-read -p "==> Set up time sync"
-echo -e "[Time]\nNTP=ntp1.arnes.si ntp2.arnes.si\nFallbackNTP=0.arch.pool.ntp.org 1.arch.pool.ntp.org\n" > /etc/systemd/timesyncd.conf
+read "==> Set up time sync"
+echo "[Time]
+NTP=ntp1.arnes.si ntp2.arnes.si
+FallbackNTP=0.arch.pool.ntp.org 1.arch.pool.ntp.org" > /etc/systemd/timesyncd.conf
 timedatectl set-ntp true
 
-read -p "==> Configure Journal daemon"
+read "==> Configure Journal daemon"
 mkdir -p /etc/systemd/journal.conf.d
-echo -e "[Journal]\nSystemMaxUse=16M" > /etc/systemd/journal.conf.d/00-journal-size.conf
+echo "[Journal]
+SystemMaxUse=16M" > /etc/systemd/journal.conf.d/00-journal-size.conf
 systemctl stop systemd-journald
 rm -fr /var/log/journal/*
 systemctl start systemd-journald
 
-read -p "==> Set up MySQL"
-sed -i "s|log-bin=mysql-bin|#log-bin=mysql-bin|g" /etc/mysql/my.cnf
-sed -i "s|binlog_format=mixed|#binlog_format=mixed|g" /etc/mysql/my.cnf
-mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
-systemctl start mysqld.service
-systemctl enable mysqld.service
-mysql_secure_installation
+read "==> Set up Nginx"
+mkdir -p /var/log/nginx
+touch /var/log/nginx/access.log
+touch /var/log/nginx/error.log
+chown -R root:http /var/log/nginx
+chmod g+w /var/log/nginx -R
+chmod g+s /var/log/nginx
+mkdir -p /etc/nginx/{sites-available,sites-enabled}
 
-read -p "==> Set up PostgreSQL"
-echo "Set a password for postgres user"
-passwd postgres
-su -c "initdb --locale en_US.UTF-8 -E UTF8 -D '/var/lib/postgres/data'" postgres
-systemctl start postgresql.service
-systemctl enable postgresql.service
-su -c "createuser -d -r -s dev" postgres
-su -c "createdb dev" dev
+echo "user http http;
+worker_processes auto;
+events {
+  worker_connections 8000;
+}
+http {
+  include            mime.types;
+  default_type       application/octet-stream;
+  charset            utf-8;
+  charset_types text/css text/plain text/vnd.wap.wml application/javascript application/json application/rss+xml application/xml;
+  index              index.html index.php;
+  log_format  main   '\$remote_addr - \$remote_user [\$time_local] \"\$request\" '
+                     '\$status \$body_bytes_sent \"\$http_referer\" '
+                     '\"\$http_user_agent\" \"\$http_x_forwarded_for\"';
+  access_log         /var/log/nginx/access.log main;
+  error_log          /var/log/nginx/error.log error;
+  keepalive_timeout  20s;
+  sendfile           on;
+  tcp_nopush         on;
+  gzip               off;
+  server {
+    listen 80 default_server;
+    return 444;
+  }
+  include sites-enabled/*.conf;
+}" > /etc/nginx/nginx.conf
 
-read -p "==> Set up PHP"
-wget -O /etc/php/conf.d/devbox.ini ${github_configs}php.ini
-systemctl enable php-fpm.service
-
-read -p "==> Set up Postfix and Dovecot"
-echo -e "\ninet_interfaces = loopback-only\nmynetworks_style = host\nhome_mailbox = Maildir/\ncanonical_maps = regexp:/etc/postfix/canonical-redirect\n" >> /etc/postfix/main.cf
-echo -e "/^.*$/ dev\n" > /etc/postfix/canonical-redirect
-if [ -f /etc/dovecot/dovecot.conf ]; then
-  mv /etc/dovecot/dovecot.conf /etc/dovecot/dovecot.conf.old
-fi
-wget -O /etc/dovecot/dovecot.conf ${github_configs}dovecot.conf
-systemctl enable postfix.service
-systemctl enable dovecot.service
-newaliases
-
-read -p "==> Set up Nginx"
-mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.old
-mv /etc/nginx/mime.types /etc/nginx/mime.types.old
-wget -O /etc/nginx/nginx.conf ${github_configs}nginx.main.conf
-wget -O /etc/nginx/mime.types ${github_configs}mime.types
-read -e -p "Devbox domain: " -i "devbox.dev" domain
-mkdir -p /srv/http/${domain}/{etc,webdir}
-wget -O /srv/http/${domain}/etc/nginx.conf ${github_configs}nginx.vhost.conf
-sed -i "s/devbox.dev/${domain}/g" /srv/http/${domain}/etc/nginx.conf
-wget -O /srv/http/${domain}/webdir/index.html ${github_configs}index.html
-echo -e "<?php phpinfo();\n" > /srv/http/${domain}/webdir/phpinfo.php
-systemctl enable nginx.service
-
-read -p "==> Set up PhpMyAdmin"
-mkdir /srv/http/${domain}/webdir/{phpmyadmin,phppgadmin,roundcube}
-wget -O phpmyadmin.tar.gz https://github.com/phpmyadmin/phpmyadmin/tarball/master
-tar -zxf phpmyadmin.tar.gz -C /srv/http/${domain}/webdir/phpmyadmin --strip-components=1
-
-read -p "==> Set up PhpPgAdmin"
-wget -O phppgadmin.tar.gz https://github.com/phppgadmin/phppgadmin/tarball/master
-tar -zxf phppgadmin.tar.gz -C /srv/http/${domain}/webdir/phppgadmin --strip-components=1
-cp /srv/http/${domain}/webdir/phppgadmin/conf/config.inc.php-dist /srv/http/${domain}/webdir/phppgadmin/conf/config.inc.php
-
-read -p "==> Set up Roundcube"
-wget -O roundcube.tar.gz https://github.com/roundcube/roundcubemail/tarball/master
-tar -zxf roundcube.tar.gz -C /srv/http/${domain}/webdir/roundcube --strip-components=1
-mysql -u root -pdev -e "CREATE DATABASE roundcube;"
-wget -O /srv/http/${domain}/webdir/roundcube/config/config.inc.php ${github_configs}roundcube.php
-mysql -u root -pdev roundcube < /srv/http/${domain}/webdir/roundcube/SQL/mysql.initial.sql
-chmod a+rwx /srv/http/${domain}/webdir/roundcube/logs /srv/http/${domain}/webdir/roundcube/temp
-wget -O /srv/http/${domain}/webdir/roundcube/config/mime.types http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
-
-read -p "==> Fix file ownership in /srv/http"
+mkdir -p /srv/http/devbox.dev
+echo "<!DOCTYPE html>
+<h1>Devbox Tools</h1>
+<ul>
+<li><a href=\"/phpinfo.php\">phpinfo()</a></li>" > /srv/http/devbox.dev/index.html
+echo "<?php phpinfo();" > /srv/http/devbox.dev/phpinfo.php
 chown -R dev:dev /srv/http
 
-read -p "==> Cleanup pacman cache"
+echo "server {
+  listen      [::]:80;
+  listen      80;
+  server_name devbox.dev;
+  root        /srv/http/devbox.dev;
+  access_log  off;
+  location ~ \\.php\$ {
+    try_files \$uri =404;
+    fastcgi_index index.php;
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
+  }
+}" > /etc/nginx/sites-available/devbox.dev.conf
+
+ln -s /etc/nginx/sites-available/devbox.dev.conf /etc/nginx/sites-enabled/
+
+systemctl enable nginx.service
+
+read -p "==> Set up PHP"
+echo "[PHP]
+expose_php = On
+max_execution_time = 20
+max_input_time = 40
+memory_limit = 256M
+error_reporting = E_ALL
+display_errors = On
+post_max_size = 20M
+upload_max_filesize = 10M
+
+extension=calendar.so
+extension=exif.so
+extension=gd.so
+extension=gettext.so
+extension=iconv.so
+extension=intl.so
+extension=mcrypt.so
+
+[Date]
+date.timezone = \"Europe/Ljubljana\"" > /etc/php/conf.d/devbox.ini
+systemctl enable php-fpm.service
+
+read "==> Cleanup pacman cache"
 pacman -Scc
 pacman-optimize
 
-echo "Done. Please reboot the VM and add '$hIP $domain' to /etc/hosts on your host machine."
+echo "Done. Please reboot the VM and add '$hIP devbox.dev' to /etc/hosts on your host machine."

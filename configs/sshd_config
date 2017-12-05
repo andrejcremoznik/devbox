@@ -1,9 +1,0 @@
-Protocol 2
-AuthorizedKeysFile .ssh/authorized_keys
-PasswordAuthentication yes
-PermitEmptyPasswords no
-ChallengeResponseAuthentication no
-UsePAM yes
-AllowAgentForwarding yes
-PrintMotd no
-Subsystem sftp /usr/lib/ssh/sftp-server
