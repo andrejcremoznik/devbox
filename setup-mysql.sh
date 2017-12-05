@@ -1,9 +1,9 @@
 #!/bin/bash
 
-read "==> Install MariaDB"
+echo "==> Install MariaDB"
 pacman -S mariadb
 
-read "==> Set up MySQL"
+echo "==> Set up MySQL"
 sed -i "s|log-bin=mysql-bin|#log-bin=mysql-bin|g" /etc/mysql/my.cnf
 sed -i "s|binlog_format=mixed|#binlog_format=mixed|g" /etc/mysql/my.cnf
 mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
@@ -30,7 +30,7 @@ curl -L https://github.com/phpmyadmin/phpmyadmin/tarball/master | tar zxf - --st
 
 echo "<li><a href=\"/phpmyadmin/\">PhpMyAdmin</a> (root / dev)</li>" >> /srv/http/devbox.dev/index.html
 
-read "==> Fix file ownership"
+echo "==> Fix file ownership"
 chown -R dev:dev ${DIR}
 
-read "==> Done."
+echo "==> Done"

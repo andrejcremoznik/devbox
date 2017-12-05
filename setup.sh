@@ -1,14 +1,14 @@
 #!/bin/bash
 
-read "==> Install software"
+echo "==> Install software"
 pacman -S openssh wget nginx nodejs git php-fpm php-gd php-intl rsync screen bash-completion
 
-read "==> Create normal user 'dev' and set password"
+echo "==> Create normal user 'dev' and set password"
 useradd -m -G http -s /bin/bash dev
 passwd dev
 echo -e "\ndev ALL=(ALL) ALL\n" >> /etc/sudoers
 
-read "==> Set up WP-CLI, Composer, NPM, SSH config"
+echo "==> Set up WP-CLI, Composer, NPM, SSH config"
 mkdir /home/dev/{bin,node,.ssh}
 wget -O /home/dev/bin/wp https://raw.github.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 wget -O /home/dev/bin/composer https://getcomposer.org/composer.phar
@@ -16,7 +16,7 @@ chmod u+x /home/dev/bin/*
 echo -e "prefix=/home/dev/node\n" > /home/dev/.npmrc
 echo -e "host github\n  hostname github.com\n  user git" > /home/dev/.ssh/config
 
-read "==> Set up .bashrc"
+echo "==> Set up .bashrc"
 echo "[[ \$- != *i* ]] && return
 
 PATH=\$HOME/bin:\$HOME/node/bin:\$PATH
@@ -42,10 +42,10 @@ export VISUAL=nano
 
 PS1='[\\u@\\h \\W]\\\$ '" > /home/dev/.bashrc
 
-read "==> Fix file ownership in /home/dev"
+echo "==> Fix file ownership in /home/dev"
 chown -R dev:dev /home/dev
 
-read "==> Set up Netctl"
+echo "==> Set up Netctl"
 ip link show
 read -e -p "NAT interface: " -i "enp0s3" nInt
 read -e -p "Host-only interface: " -i "enp0s8" hInt
@@ -63,7 +63,7 @@ DNS=('10.10.0.1')" > /etc/netctl/devbox-host
 netctl enable devbox-dhcp
 netctl enable devbox-host
 
-read "==> Set up SSHD"
+echo "==> Set up SSHD"
 mv /etc/ssh/sshd_config /etc/ssh/sshd_config.old
 echo "Protocol 2
 PasswordAuthentication yes
@@ -74,13 +74,13 @@ PrintMotd no
 Subsystem sftp /usr/lib/ssh/sftp-server" > /etc/ssh/sshd_config
 systemctl enable sshd.service
 
-read "==> Set up time sync"
+echo "==> Set up time sync"
 echo "[Time]
 NTP=ntp1.arnes.si ntp2.arnes.si
 FallbackNTP=0.arch.pool.ntp.org 1.arch.pool.ntp.org" > /etc/systemd/timesyncd.conf
 timedatectl set-ntp true
 
-read "==> Configure Journal daemon"
+echo "==> Configure Journal daemon"
 mkdir -p /etc/systemd/journal.conf.d
 echo "[Journal]
 SystemMaxUse=8M" > /etc/systemd/journal.conf.d/00-journal-size.conf
@@ -88,7 +88,7 @@ systemctl stop systemd-journald
 rm -fr /var/log/journal/*
 systemctl start systemd-journald
 
-read "==> Set up Nginx"
+echo "==> Set up Nginx"
 mkdir -p /var/log/nginx
 touch /var/log/nginx/access.log
 touch /var/log/nginx/error.log
@@ -151,7 +151,7 @@ ln -s /etc/nginx/sites-available/devbox.dev.conf /etc/nginx/sites-enabled/
 
 systemctl enable nginx.service
 
-read -p "==> Set up PHP"
+echo "==> Set up PHP"
 echo "[PHP]
 expose_php = On
 max_execution_time = 20
@@ -174,8 +174,8 @@ extension=mcrypt.so
 date.timezone = \"Europe/Ljubljana\"" > /etc/php/conf.d/00-devbox.ini
 systemctl enable php-fpm.service
 
-read "==> Cleanup pacman cache"
+echo "==> Cleanup pacman cache"
 pacman -Scc
 pacman-optimize
 
-echo "Done. Please reboot the VM and add '$hIP devbox.dev' to /etc/hosts on your host machine."
+echo "==> Done. Please reboot the VM and add '$hIP devbox.dev' to /etc/hosts on your host machine."

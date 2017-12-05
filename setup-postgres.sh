@@ -1,9 +1,9 @@
 #!/bin/bash
 
-read "==> Install PostgreSQL"
+echo "==> Install PostgreSQL"
 pacman -S postgresql php-pgsql
 
-read "==> Set up PostgreSQL"
+echo "==> Set up PostgreSQL"
 echo "Set a password for postgres user"
 passwd postgres
 su -c "initdb --locale en_US.UTF-8 -E UTF8 -D '/var/lib/postgres/data'" postgres
@@ -32,7 +32,7 @@ cp ${DIR}/conf/config.inc.php-dist ${DIR}/conf/config.inc.php
 
 echo "<li><a href=\"/phppgadmin/\">PhpPgAdmin</a> (dev / dev)</li>" >> /srv/http/devbox.dev/index.html
 
-read "==> Fix file ownership"
+echo "==> Fix file ownership"
 chown -R dev:dev ${DIR}
 
-read "==> Done"
+echo "==> Done"

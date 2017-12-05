@@ -1,9 +1,9 @@
 #!/bin/bash
 
-read "==> Install Postfix and Dovecot"
+echo "==> Install Postfix and Dovecot"
 pacman -S postfix dovecot
 
-read "==> Set up Postfix"
+echo "==> Set up Postfix"
 
 echo "inet_interfaces = loopback-only
 mynetworks_style = host
@@ -14,7 +14,7 @@ echo "/^.*\$/ dev" > /etc/postfix/canonical-redirect
 systemctl start postfix.service
 systemctl enable postfix.service
 
-read "==> Set up Dovecot"
+echo "==> Set up Dovecot"
 
 if [ -f /etc/dovecot/dovecot.conf ]; then
   mv /etc/dovecot/dovecot.conf /etc/dovecot/dovecot.conf.old
@@ -71,7 +71,7 @@ wget -O ${DIR}/config/mime.types http://svn.apache.org/repos/asf/httpd/httpd/tru
 
 echo "<li><a href=\"/roundcube/\">Roundcube</a> (dev / dev)</li>" >> /srv/http/devbox.dev/index.html
 
-read "==> Fix file ownership"
+echo "==> Fix file ownership"
 chown -R dev:dev ${DIR}
 
-read "==> Done"
+echo "==> Done"
