@@ -42,6 +42,26 @@ export VISUAL=nano
 
 PS1='[\\u@\\h \\W]\\\$ '" > /home/dev/.bashrc
 
+echo "==> Set up .gitconfig"
+echo "[user]
+  name = Your Name
+  email = your@email.tld
+[core]
+  autocrlf = input
+[color]
+  ui = auto
+  diff = auto
+  status = auto
+  branch = auto
+[alias]
+  lg = log --graph -n 20 --abbrev-commit --date=relative --pretty=format:'%h -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %Cblue<%an>%Creset'
+  st = status
+  gca = gc --aggressive
+  prb = pull --rebase
+  rprune = remote update --prune
+[push]
+  default = simple" > /home/dev/.gitconfig
+
 echo "==> Fix file ownership in /home/dev"
 chown -R dev:dev /home/dev
 
@@ -183,4 +203,4 @@ echo "==> Cleanup pacman cache"
 pacman -Scc
 pacman-optimize
 
-echo "==> Done. Please reboot the VM and add '$hIP devbox.dev' to /etc/hosts on your host machine."
+echo "==> Done. Review /home/dev/.gitconfig file if you want to use git on the VM. Reboot the VM and add '$hIP devbox.dev' to /etc/hosts on your host machine."
