@@ -1,20 +1,22 @@
 #!/bin/bash
 
 echo "==> Install software"
-pacman -S openssh nginx nodejs git php-fpm php-gd php-intl rsync bash-completion
+pacman -S openssh nginx nodejs npm git php-fpm php-gd php-intl rsync bash-completion
 
 echo "==> Create normal user 'dev' and set password"
 useradd -m -G http -s /bin/bash dev
 passwd dev
-echo -e "\ndev ALL=(ALL) ALL\n" >> /etc/sudoers
+echo "dev ALL=(ALL) ALL" >> /etc/sudoers
 
 echo "==> Set up WP-CLI, Composer, NPM, SSH config"
 mkdir /home/dev/{bin,node,.ssh}
 curl -o /home/dev/bin/wp -L https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 curl -o /home/dev/bin/composer -L https://getcomposer.org/composer.phar
 chmod u+x /home/dev/bin/*
-echo -e "prefix=/home/dev/node\n" > /home/dev/.npmrc
-echo -e "host github\n  hostname github.com\n  user git" > /home/dev/.ssh/config
+echo "prefix=/home/dev/node" > /home/dev/.npmrc
+echo "host github
+  hostname github.com
+  user git" > /home/dev/.ssh/config
 
 echo "==> Set up .bashrc"
 echo "[[ \$- != *i* ]] && return
@@ -112,9 +114,6 @@ echo "==> Set up Nginx"
 mkdir -p /var/log/nginx
 touch /var/log/nginx/access.log
 touch /var/log/nginx/error.log
-chown -R root:http /var/log/nginx
-chmod g+w /var/log/nginx -R
-chmod g+s /var/log/nginx
 mkdir -p /etc/nginx/{sites-available,sites-enabled}
 
 echo "user http http;
