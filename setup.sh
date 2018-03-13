@@ -147,7 +147,7 @@ http {
   include sites-enabled/*.conf;
 }" > /etc/nginx/nginx.conf
 
-curl -o /etc/nginx/mime.types2 -L https://raw.githubusercontent.com/h5bp/server-configs-nginx/master/mime.types
+curl -o /etc/nginx/mime.types -L https://raw.githubusercontent.com/h5bp/server-configs-nginx/master/mime.types
 
 mkdir -p /srv/http/devbox.dev
 echo "<!DOCTYPE html>
