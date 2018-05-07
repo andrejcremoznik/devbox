@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "==> Install software"
-pacman -S openssh nginx nodejs npm git php-fpm php-gd php-intl rsync bash-completion
+pacman -S openssh nginx nodejs npm git php-fpm php-gd php-intl rsync bash-completion unzip
 
 echo "==> Create normal user 'dev' and set password"
 useradd -m -G http -s /bin/bash dev
