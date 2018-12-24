@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "==> Install MariaDB"
+pacman -Syu
 pacman -S mariadb
 
 echo "==> Set up MySQL"

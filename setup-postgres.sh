@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "==> Install PostgreSQL"
+pacman -Syu
 pacman -S postgresql php-pgsql
 
 echo "==> Set up PostgreSQL"

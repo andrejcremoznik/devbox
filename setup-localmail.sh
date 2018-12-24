@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "==> Install Postfix and Dovecot"
+pacman -Syu
 pacman -S postfix dovecot
 
 echo "==> Set up Postfix"
@@ -39,6 +40,7 @@ systemctl enable dovecot.service
 
 read -e -p "==> Install Mutt (cli email client)? (y/n): " cont
 if [ "$cont" != "y" ]; then
+  echo "==> Done."
   exit
 fi
 

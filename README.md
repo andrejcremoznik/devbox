@@ -6,15 +6,15 @@ Install and configure an Arch Linux VM for use as a web development environment.
 ## Instructions
 
 1. Create a new VitualBox VM for Arch and boot it from the installation ISO
-2. Install Arch following the installation guide (partition, mount, install base base-devel grub, configure hostname, locales, grub, reboot)
+2. Install Arch following the installation guide (partition, mount, install base base-devel grub, configure hostname, locales, grub and reboot)
 3. As root run `setup.sh` and any other `setup-*`s you need
 
 
 ### What does it do
 
-1. Installs `openssh nginx nodejs git php-fpm php-gd php-intl rsync bash-completion`
+1. Installs `openssh nginx nodejs git php-fpm php-gd php-intl bash-completion composer`
 2. Creates user `dev` and adds it to `sudoers`
-3. Installs Composer as `composer` and WP-CLI as `wp` for user `dev`
+3. Installs WP-CLI as `wp` for user `dev`
 4. Configures `.bashrc` and `.npmrc` for user `dev`
 5. Configures network interfaces (dhcp and host-only)
 6. Configures SSH daemon
@@ -37,7 +37,7 @@ This isn't really meant to be used by anyone who didn't read and understand the 
 
 ## License - MIT
 
-Copyright 2017 Andrej Cremoznik
+Copyright 2017-2019 Andrej Cremoznik
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
