@@ -2,7 +2,7 @@
 
 echo "==> Install software"
 pacman -Syu
-pacman -S openssh nginx nodejs npm git php-fpm php-gd php-intl bash-completion unzip composer
+pacman -S openssh nginx nodejs npm git php-fpm php-gd php-intl bash-completion unzip composer sudo
 
 echo "==> Create normal user 'dev' and set password"
 useradd -m -G http -s /bin/bash dev
@@ -20,16 +20,15 @@ echo "host github
 
 echo "==> Set up .bashrc"
 echo "[[ \$- != *i* ]] && return
-
 PATH=\$HOME/bin:\$HOME/node/bin:\$PATH
-
 export HISTSIZE=5000
 export HISTFILESIZE=10000
 export HISTCONTROL=ignoreboth,ignoredups
 export PROMPT_COMMAND='history -a'
+export EDITOR=nano
+export VISUAL=nano
 shopt -s histappend
 shopt -s globstar
-
 alias ls='ls -h --group-directories-first --time-style=+\"%d.%m.%Y %H:%M\" --color=auto -F'
 alias ll='ls -lh --group-directories-first --time-style=+\"%d.%m.%Y %H:%M\" --color=auto -F'
 alias la='ls -la --group-directories-first --time-style=+\"%d.%m.%Y %H:%M\" --color=auto -F'
@@ -37,11 +36,6 @@ alias grep='grep --color=auto -d skip'
 alias cp='cp -i'
 alias mv='mv -i'
 alias ..='cd ..'
-alias df='df -h'
-
-export EDITOR=nano
-export VISUAL=nano
-
 PS1='[\\u@\\h \\W]\\\$ '" > /home/dev/.bashrc
 
 echo "==> Set up .gitconfig"
@@ -114,7 +108,7 @@ echo "==> Set up Nginx"
 mkdir -p /var/log/nginx
 touch /var/log/nginx/access.log
 touch /var/log/nginx/error.log
-mkdir -p /etc/nginx/{sites-available,sites-enabled}
+mkdir -p /etc/nginx/{sites-available,sites-enabled,conf.d}
 
 echo "user http http;
 worker_processes auto;
