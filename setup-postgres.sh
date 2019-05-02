@@ -2,7 +2,7 @@
 
 echo "==> Install PostgreSQL"
 pacman -Syu
-pacman -S postgresql php-pgsql
+pacman -S postgresql
 
 echo "==> Set up PostgreSQL"
 echo "Set a password for postgres user"
@@ -13,8 +13,18 @@ systemctl enable postgresql.service
 su -c "createuser -d -r -s dev" postgres
 su -c "createdb dev" dev
 
+read -e -p "Install PHP-FPM extension? (y/n): " withPhp
+if [ "$withPhp" != "y" ]; then
+  echo "==> Done."
+  exit
+fi
+
+pacman -S php-pgsql
+
 echo "extension=pdo_pgsql.so
-extension=pgsql.so" > /etc/php/conf.d/90-pgsql.ini
-echo "Reboot or restart PHP-FPM to load the PostgreSQL extension"
+extension=pgsql.so
+" > /etc/php/conf.d/90-pgsql.ini
+
+systemctl restart php-fpm.service
 
 echo "==> Done. You can install PhpPgAdmin to /srv/http/devbox.dev/phppgadmin if you need it."

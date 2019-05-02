@@ -12,8 +12,16 @@ systemctl start mysqld.service
 systemctl enable mysqld.service
 mysql_secure_installation
 
+read -e -p "Install PHP-FPM extension? (y/n): " withPhp
+if [ "$withPhp" != "y" ]; then
+  echo "==> Done."
+  exit
+fi
+
 echo "extension=mysqli.so
-extension=pdo_mysql.so" > /etc/php/conf.d/90-mysql.ini
-echo "Reboot or restart PHP-FPM to load the MySQL extension"
+extension=pdo_mysql.so
+" > /etc/php/conf.d/90-mysql.ini
+
+systemctl restart php-fpm.service
 
 echo "==> Done. You can install PhpMyAdmin to /srv/http/devbox.dev/phpmyadmin if you need it."

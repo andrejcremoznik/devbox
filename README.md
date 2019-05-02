@@ -12,27 +12,22 @@ Install and configure an Arch Linux VM for use as a web development environment.
 
 ### What does it do
 
-1. Installs `openssh nginx nodejs git php-fpm php-gd php-intl bash-completion composer`
+1. Installs `openssh nginx git bash-completion unzip sudo`
 2. Creates user `dev` and adds it to `sudoers`
-3. Installs WP-CLI as `wp` for user `dev`
-4. Configures `.bashrc` and `.npmrc` for user `dev`
+4. Configures `.bashrc`
 5. Configures network interfaces (dhcp and host-only)
 6. Configures SSH daemon
 7. Configures automatic time sync (you might want to change the servers in `/etc/systemd/timesyncd.conf` if you're not in Slovenia)
 8. Limits Journal daemon log size
 9. Configures Nginx, creates a `devbox.dev` host
-10. Configures PHP
 
 Additionally:
 
-* `setup-mysql.sh` will install and configure `mariadb`
-* `setup-postgres.sh` will install and configure `postgresql`
+* `setup-php.sh` will install and configure `php-fpm php-gd php-intl` and conditionally Composer and WP-CLI
+* `setup-nodejs.sh` will install and configure `nodejs npm`
+* `setup-mysql.sh` will install and configure `mariadb` and conditionally PHP support
+* `setup-postgres.sh` will install and configure `postgresql` and conditionally PHP support
 * `setup-localmail.sh` will install and configure `postfix` and `dovecot` for local mail delivery
-
-
-## Disclaimer
-
-This isn't really meant to be used by anyone who didn't read and understand the script. The obvious question popping into someone's mind will be why am I not using a provisioning system. Mainly because it's just another abstraction you have learn and I didn't want to bother. This suits my needs perfectly.
 
 
 ## License - MIT
