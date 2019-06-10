@@ -5,7 +5,7 @@ pacman -Syu
 pacman -S postgresql
 
 echo "==> Set up PostgreSQL"
-echo "Set a password for postgres user"
+echo "Set password 'postgres' for postgres user"
 passwd postgres
 su -c "initdb --locale en_US.UTF-8 -E UTF8 -D '/var/lib/postgres/data'" postgres
 systemctl start postgresql.service

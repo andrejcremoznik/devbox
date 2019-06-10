@@ -7,6 +7,7 @@ Install and configure an Arch Linux VM for use as a web development environment.
 
 1. Create a new VitualBox VM for Arch and boot it from the installation ISO
 2. Install Arch following the installation guide (partition, mount, install base grub, configure hostname, locales, grub and reboot)
+3. Copy the scripts to `/`
 3. As root run `setup.sh` and any other `setup-*`s you need
 
 

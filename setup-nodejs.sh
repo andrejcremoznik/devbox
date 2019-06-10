@@ -6,8 +6,7 @@ pacman -S nodejs npm
 
 echo "==> Set up NodeJS"
 
-echo "prefix=/home/dev/node
-loglevel=silent
+echo "prefix=${HOME}/node
 " > /home/dev/.npmrc
 
 chown dev:dev /home/dev/.npmrc

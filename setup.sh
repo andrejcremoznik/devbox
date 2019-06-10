@@ -4,7 +4,7 @@ echo "==> Install software"
 pacman -Syu
 pacman -S openssh nginx git bash-completion unzip sudo
 
-echo "==> Create normal user 'dev' and set password"
+echo "==> Create normal user 'dev' and set password 'dev'"
 useradd -m -G http -s /bin/bash dev
 passwd dev
 echo "dev ALL=(ALL) ALL
