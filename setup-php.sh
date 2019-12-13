@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 echo "==> Install PHP-FPM"
-pacman -Syu
-pacman -S php-fpm php-gd php-intl
+pacman -Sy php-fpm php-gd php-intl
 
 echo "==> Set up PHP"
 echo "[PHP]
@@ -28,12 +27,6 @@ date.timezone = \"Europe/Ljubljana\"
 
 systemctl start php-fpm.service
 systemctl enable php-fpm.service
-
-echo "<li><a href=\"/phpinfo.php\">phpinfo()</a></li>
-" >> /srv/http/devbox.dev/index.html
-echo "<?php phpinfo();
-" > /srv/http/devbox.dev/phpinfo.php
-chown dev:dev /srv/http/devbox.dev/*
 
 read -e -p "Install Composer and WP-CLI? (y/n): " withTools
 if [ "$withTools" != "y" ]; then

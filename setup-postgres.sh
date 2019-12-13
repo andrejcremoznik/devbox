@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 echo "==> Install PostgreSQL"
-pacman -Syu
-pacman -S postgresql
+pacman -Sy postgresql
 
 echo "==> Set up PostgreSQL"
 echo "Set password 'postgres' for postgres user"
@@ -27,4 +26,4 @@ extension=pgsql.so
 
 systemctl restart php-fpm.service
 
-echo "==> Done. You can install PhpPgAdmin to /srv/http/devbox.dev/phppgadmin if you need it."
+echo "==> Done."

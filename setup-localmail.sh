@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 echo "==> Install Postfix and Dovecot"
-pacman -Syu
-pacman -S postfix dovecot
+pacman -Sy postfix dovecot
 
 echo "==> Set up Postfix"
 echo "inet_interfaces = loopback-only

@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 echo "==> Install MariaDB"
-pacman -Syu
-pacman -S mariadb
+pacman -Sy mariadb
 
 echo "==> Set up MySQL"
 sed -i "s|log-bin=mysql-bin|#log-bin=mysql-bin|g" /etc/mysql/my.cnf
@@ -24,4 +23,4 @@ extension=pdo_mysql.so
 
 systemctl restart php-fpm.service
 
-echo "==> Done. You can install PhpMyAdmin to /srv/http/devbox.dev/phpmyadmin if you need it."
+echo "==> Done."

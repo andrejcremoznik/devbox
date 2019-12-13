@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 echo "==> Install software"
-pacman -Syu
-pacman -S openssh nginx git bash-completion unzip sudo
+pacman -Syu openssh nginx git bash-completion unzip sudo
 
 echo "==> Create normal user 'dev' and set password 'dev'"
 useradd -m -G http -s /bin/bash dev
@@ -11,7 +10,7 @@ echo "dev ALL=(ALL) ALL
 " >> /etc/sudoers
 
 echo "==> Set up SSH config"
-mkdir -p /home/dev/{bin,node/bin,.ssh}
+mkdir -p /home/dev/{bin,.ssh}
 
 echo "host github
   hostname github.com
@@ -68,26 +67,6 @@ echo "[user]
 
 echo "==> Fix file ownership in /home/dev"
 chown -R dev:dev /home/dev
-
-echo "==> Set up Netctl"
-ip link show
-read -e -p "NAT interface: " -i "enp0s3" nInt
-read -e -p "Host-only interface: " -i "enp0s8" hInt
-read -e -p "Devbox IP: " -i "10.10.0." hIP
-echo "Description='DHCP net'
-Interface=$nInt
-Connection=ethernet
-IP=dhcp
-" > /etc/netctl/devbox-dhcp
-echo "Description='Host net'
-Interface=$hInt
-Connection=ethernet
-IP=static
-Address=('$hIP/24')
-DNS=('10.10.0.1')
-" > /etc/netctl/devbox-host
-netctl enable devbox-dhcp
-netctl enable devbox-host
 
 echo "==> Set up SSHD"
 echo "Protocol 2
@@ -152,18 +131,23 @@ http {
 }
 " > /etc/nginx/nginx.conf
 
-mkdir -p /srv/http/devbox.dev
+echo "==> Configure hostname"
+read -e -p "Unique hostname for this devbox: " -i "devbox" hName
+
+echo $hName > /etc/hostname
+
+mkdir -p /srv/http/${hName}.test
 echo "<!DOCTYPE html>
 <h1>Devbox Tools</h1>
 <ul>
-" > /srv/http/devbox.dev/index.html
+" > /srv/http/${hName}.test/index.html
 chown -R dev:dev /srv/http
 
 echo "server {
   listen      [::]:80;
   listen      80;
-  server_name devbox.dev;
-  root        /srv/http/devbox.dev;
+  server_name $hName.test;
+  root        /srv/http/$hName.test;
   access_log  off;
   location ~ \\.php\$ {
     try_files \$uri =404;
@@ -173,10 +157,13 @@ echo "server {
     fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
   }
 }
-" > /etc/nginx/sites-available/devbox.dev.conf
+" > /etc/nginx/sites-available/$hName.test.conf
 
-ln -s /etc/nginx/sites-available/devbox.dev.conf /etc/nginx/sites-enabled/devbox.dev.conf
+ln -s /etc/nginx/sites-available/$hName.test.conf /etc/nginx/sites-enabled/$hName.test.conf
 
 systemctl enable nginx.service
 
 echo "==> Done."
+echo "==> Add '<VM's IP> $hName.test' to your host machine's /etc/hosts"
+echo "==> Open http://$hName.test in browser"
+echo "==> SSH to $hName with 'ssh -A dev@$hName.test'"
