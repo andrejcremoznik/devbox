@@ -5,69 +5,41 @@ Install and configure an Arch Linux VM for use as a web development environment.
 
 ## Instructions
 
-1. Create a new VitualBox VM for Arch and boot it from the installation ISO
-2. Install Arch following the installation guide (partition, mount, install, configure hostname, locales, bootloader, network* and reboot)
-3. Copy the scripts to `/`
-4. As root run `setup.sh` and any other `setup-*`s you need
+1. Create a new VitualBox VM for Arch ([requirements](#virtualbox-vm-configuration)) and boot it from the [installation ISO](https://archlinux.org/download/)
+2. Sync time: `timedatectl set-ntp true`
+3. With `fdisk /dev/sda` create a new DOS partition table and a new partition spanning full size
+4. Format: `mkfs.ext4 /dev/sda1`
+5. Mount: `mount /dev/sda1 /mnt`
+6. Pacstrap: `pacstrap /mnt base linux-lts base-devel man-db man-pages texinfo nano grub`
+7. Fstab: `genfstab -U /mnt >> /mnt/etc/fstab`
+8. Chroot: `arch-chroot /mnt`
+9. Download `setup.sh` and run it: `curl -O https://raw.githubusercontent.com/andrejcremoznik/devbox/master/setup.sh`
+
+Run any other scripts for extra functionality.
 
 
 ### VirtualBox VM configuration
 
 1. Configure basic things like memory, number of CPUs and a disk drive image. Decide on a reasonable disk growth limit, because expanding it afterwards is annoying.
-2. Disable Audio or USB Controllers
-3. Add 2 Network adapters:
+2. Disable Audio and USB Controllers
+3. Add 2 network adapters:
    1. Adapter 1: NAT
    2. Adapter 2: Host-only Adapter. Configure the Host-only adapter via File > Host Network Manager, create new adapter with IPv4 `10.10.0.1`, mask `255.255.255.0` and DHCP off.
 
 
-### Configure networks on guest
+## How to use the VM?
 
-Get the names of the adapters with `ip link show` (example names `enp0s3`, `enp0s8`).
-Create configuration to use them via `systemd-networkd`.
-
-1. DHCP for internet access `/etc/systemd/network/dhcp.network`:
-   ```
-   [Match]
-   Name=enp0s3 # This is the NAT adapter
-   [Network]
-   DHCP=ipv4
-   ```
-2. DHCP for internet access `/etc/systemd/network/host.network`:
-   ```
-   [Match]
-   Name=enp0s8 # This is the Host-only adapter
-   [Network]
-   Address=10.10.0.2/24 # 10.10.0.2 will be the IP of the guest.
-   ```
-3. Enable associated services:
-   ```
-   systemctl enable systemd-networkd.service
-   systemctl enable systemd-resolved.service
-   ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-   ```
-
-## What does it do
-
-1. Installs `openssh nginx git bash-completion unzip sudo`
-2. Creates user `dev` and adds it to `sudoers`
-4. Configures `.bashrc`
-5. Configures SSH daemon
-6. Configures automatic time sync (you might want to change the servers in `/etc/systemd/timesyncd.conf`)
-7. Limits Journal daemon log size
-8. Configures Nginx, creates a `<your hostname>.test` host
-
-Additionally:
-
-* `setup-php.sh` will install and configure `php-fpm php-gd php-intl` and conditionally Composer and WP-CLI
-* `setup-nodejs.sh` will install and configure `nodejs npm`
-* `setup-mysql.sh` will install and configure `mariadb` and conditionally PHP support
-* `setup-postgres.sh` will install and configure `postgresql` and conditionally PHP support
-* `setup-localmail.sh` will install and configure `postfix` and `dovecot` for local mail delivery
+1. First make sure you've added the devbox's IP to your `hosts` file on your host machine e.g. `10.10.0.2 devbox.test`
+2. Start it (headless mode recommended)
+3. Connect to it via SSH: `dev@devbox.test`
+4. Mount the filesystem from devbox to your host: `sshfs -o idmap=user dev@devbox.test:/srv/http /local/dir`
+5. Create your projects in `/srv/http/*` and set up Nginx configurations in `/etc/nginx/sites/*`
+6. Use `git`, `npm` and such on the devbox. No need for these tools on the host machine.
 
 
 ## License - MIT
 
-Copyright 2017-2020 Andrej Cremoznik
+Copyright 2017-2021 Andrej Cremoznik
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

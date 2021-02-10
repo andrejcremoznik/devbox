@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-echo "==> Install PHP-FPM"
-pacman -Sy php-fpm php-gd php-intl
+pacman -S --noconfirm php-fpm php-gd php-intl php-imagick
 
-echo "==> Set up PHP"
+read -e -i "Europe/Amsterdam" -r -p "PHP timezone: " tz
+
 echo "[PHP]
 expose_php = On
 max_execution_time = 20
@@ -14,6 +14,7 @@ display_errors = On
 post_max_size = 20M
 upload_max_filesize = 10M
 
+# Additional built-in extensions
 extension=calendar.so
 extension=exif.so
 extension=gd.so
@@ -22,19 +23,34 @@ extension=iconv.so
 extension=intl.so
 
 [Date]
-date.timezone = \"Europe/Ljubljana\"
+date.timezone = \"${tz}\"
 " > /etc/php/conf.d/00-devbox.ini
+
+echo "extension=imagick
+" > /etc/php/conf.d/imagick.ini
 
 systemctl start php-fpm.service
 systemctl enable php-fpm.service
 
-read -e -p "Install Composer and WP-CLI? (y/n): " withTools
-if [ "$withTools" != "y" ]; then
+echo "To enable PHP-FPM in Nginx vhost configuration add the following block to the server directive:
+
+  location ~ \\.php\$ {
+    try_files \$uri =404;
+    fastcgi_index index.php;
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
+  }
+
+"
+
+read -r -p "Install Composer and WP-CLI? (y/n): " withTools
+if [ "${withTools}" != "y" ]; then
   echo "==> Done."
   exit
 fi
 
-pacman -S composer
+pacman -S --noconfirm composer
 
 curl -o /home/dev/bin/wp -L https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 chmod u+x /home/dev/bin/wp

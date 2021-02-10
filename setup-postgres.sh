@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-echo "==> Install PostgreSQL"
-pacman -Sy postgresql
+pacman -S --noconfirm postgresql
 
-echo "==> Set up PostgreSQL"
-echo "Set password 'postgres' for postgres user"
+echo "Set password for postgres user"
 passwd postgres
 su -c "initdb --locale en_US.UTF-8 -E UTF8 -D '/var/lib/postgres/data'" postgres
 systemctl start postgresql.service
@@ -12,17 +10,17 @@ systemctl enable postgresql.service
 su -c "createuser -d -r -s dev" postgres
 su -c "createdb dev" dev
 
-read -e -p "Install PHP-FPM extension? (y/n): " withPhp
-if [ "$withPhp" != "y" ]; then
+read -r -p "Install PHP-FPM extension? (y/n): " withPhp
+if [ "${withPhp}" != "y" ]; then
   echo "==> Done."
   exit
 fi
 
-pacman -S php-pgsql
+pacman -S --noconfirm php-pgsql
 
 echo "extension=pdo_pgsql.so
 extension=pgsql.so
-" > /etc/php/conf.d/90-pgsql.ini
+" > /etc/php/conf.d/pgsql.ini
 
 systemctl restart php-fpm.service
 

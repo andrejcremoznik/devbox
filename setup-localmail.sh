@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
 
-echo "==> Install Postfix and Dovecot"
-pacman -Sy postfix dovecot
+pacman -S --noconfirm postfix dovecot
 
-echo "==> Set up Postfix"
 echo "inet_interfaces = loopback-only
 mynetworks_style = host
 home_mailbox = Maildir/
 canonical_maps = regexp:/etc/postfix/canonical-redirect
 " >> /etc/postfix/main.cf
+
 echo "/^.*\$/ dev
 " > /etc/postfix/canonical-redirect
 
 systemctl start postfix.service
 systemctl enable postfix.service
 
-echo "==> Set up Dovecot"
 echo "ssl = no
 disable_plaintext_auth = no
 passdb {
@@ -34,12 +32,12 @@ newaliases
 systemctl start dovecot.service
 systemctl enable dovecot.service
 
-read -e -p "==> Install Mutt? (y/n): " withMutt
-if [ "$withMutt" != "y" ]; then
+read -r -p "==> Install Mutt (CLI e-mail client)? (y/n): " withMutt
+if [ "${withMutt}" != "y" ]; then
   echo "==> Done."
   exit
 fi
 
-pacman -S mutt
+pacman -S --noconfirm mutt
 
 echo "==> Done. You can read local mail with 'mutt -f ~/Maildir'."

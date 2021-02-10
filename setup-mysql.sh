@@ -1,25 +1,21 @@
 #!/usr/bin/env bash
 
-echo "==> Install MariaDB"
-pacman -Sy mariadb
+pacman -S --noconfirm mariadb
 
-echo "==> Set up MySQL"
-sed -i "s|log-bin=mysql-bin|#log-bin=mysql-bin|g" /etc/mysql/my.cnf
-sed -i "s|binlog_format=mixed|#binlog_format=mixed|g" /etc/mysql/my.cnf
-mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
 systemctl start mysqld.service
 systemctl enable mysqld.service
 mysql_secure_installation
 
-read -e -p "Install PHP-FPM extension? (y/n): " withPhp
-if [ "$withPhp" != "y" ]; then
+read -r -p "Install PHP-FPM extension? (y/n): " withPhp
+if [ "${withPhp}" != "y" ]; then
   echo "==> Done."
   exit
 fi
 
 echo "extension=mysqli.so
 extension=pdo_mysql.so
-" > /etc/php/conf.d/90-mysql.ini
+" > /etc/php/conf.d/mysql.ini
 
 systemctl restart php-fpm.service
 
