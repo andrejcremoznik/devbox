@@ -270,6 +270,7 @@ http {
   sendfile             on;
   tcp_nopush           on;
   gzip                 off;
+  types_hash_max_size  4096;
   server {
     listen 80 default_server;
     return 444;
