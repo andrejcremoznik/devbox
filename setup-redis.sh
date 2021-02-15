@@ -17,7 +17,7 @@ if [ "${withPhp}" != "y" ]; then
   exit
 fi
 
-pacman -S --noconfirm php-redis
+pacman -S --noconfirm php-redis php-igbinary
 
 echo "extension=redis.so
 " > etc/php/conf.d/redis.ini
