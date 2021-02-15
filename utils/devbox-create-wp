@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+PROJECT_DIR="/srv/http"
+PLUGINS_DIR="/srv/http/wp-plugins"
+
+shopt -s extglob
+
+[ "$#" -lt "1" ] && { echo "Usage: $0 mysite"; exit 1; }
+
+domain="${1}.test"
+dir="${PROJECT_DIR}/${domain}"
+
+# Checks
+[ -d "${dir}" ] && { echo "${1} already exists!"; exit 1; }
+
+[ ! -d ${PROJECT_DIR} ] && { echo "Projects directory ${PROJECT_DIR} doesn't exist!"; exit 1; }
+
+if [ ! -d ${PLUGINS_DIR} ]; then
+  echo "If you create ${PLUGINS_DIR} and put shared WordPress plugins in (unzipped), they will be available in ${1}."
+  read -r -p "Continue anyway? (y/n): " cnt
+  [ "${cnt}" != "y" ] && exit 0;
+fi
+
+# Download WP
+wp core download --path="${dir}"
+
+# Create uploads and cache directories
+mkdir -p "${dir}/wp-content/uploads"
+mkdir -p "${dir}/wp-content/cache"
+chown -R dev:http "${dir}/wp-content/uploads"
+chown -R dev:http "${dir}/wp-content/cache"
+chmod -R g+ws "${dir}/wp-content/uploads"
+chmod -R g+ws "${dir}/wp-content/cache"
+
+# Remove bundled plugins and all but twentytwentyone theme
+rm -fr "${dir}"/wp-content/plugins/*
+rm -fr "${dir}"/wp-content/themes/!(twentytwentyone)
+
+# Symlink shared plugins
+if [ -d ${PLUGINS_DIR} ]; then
+  for plugin in "${PLUGINS_DIR}"/*; do
+    ln -s "${plugin}" "${dir}/wp-content/plugins/"
+  done
+fi
+
+# Set up wp-config.php
+cp "${dir}/wp-config-sample.php" "${dir}/wp-config.php"
+
+sed -i "s/database_name_here/$1/g" "${dir}/wp-config.php"
+sed -i "s/username_here/root/g" "${dir}/wp-config.php"
+sed -i "s/password_here/root/g" "${dir}/wp-config.php"
+sed -i "s/'WP_DEBUG', false/'WP_DEBUG', true/g" "${dir}/wp-config.php"
+
+# Install WP
+wp db create --path="${dir}"
+wp core install --url="${domain}" --title="$1" --admin_user=dev --admin_password=dev --admin_email="dev@${domain}" --skip-email --path="${dir}"
+wp site empty --yes --path="${dir}"
+wp widget delete search-2 recent-posts-2 recent-comments-2 archives-2 categories-2 meta-2 --path="${dir}"
+
+echo "Setting up Nginx, need sudo password:"
+echo "server {
+  listen 80;
+  server_name ${domain};
+  root ${dir};
+  index index.html index.php;
+  access_log off;
+  error_log /var/log/nginx/${domain}.log error;
+  client_max_body_size 20m;
+  location ~ \\.php$ {
+    try_files \$uri =404;
+    fastcgi_index index.php;
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
+  }
+  location / {
+    try_files \$uri \$uri/ /index.php\$is_args\$args;
+  }
+}" | sudo tee "/etc/nginx/sites/${domain}.conf"
+
+sudo nginx -t && sudo systemctl restart nginx.service
+
+echo "127.0.1.1 ${domain}" | sudo tee -a /etc/hosts
+
+echo "Done.
+You need to symlink your theme and plugin into the installation at ${dir}.
+Site available at http://${domain}.
+Login with dev / dev"

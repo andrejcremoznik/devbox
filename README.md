@@ -37,6 +37,13 @@ Run any other scripts for extra functionality.
 6. Use `git`, `npm` and such on the devbox. No need for these tools on the host machine.
 
 
+## Utils
+
+The folder `utils` contains various bash scripts to ease working on the Devbox.
+
+Download them to `/home/dev/bin/` and mark them as executable: `chmod u+x file`. They'll be in your PATH so you can run them from anywhere by their filename.
+
+
 ## License - MIT
 
 Copyright 2017-2021 Andrej Cremoznik
