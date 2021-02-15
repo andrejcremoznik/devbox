@@ -53,16 +53,60 @@ Address=${vmIP}/24
 
 systemctl enable systemd-networkd.service
 systemctl enable systemd-resolved.service
-systemctl start systemd-resolved.service
 
+# Set up a service to run a script at startup
+echo "[Unit]
+Description=Run a custom script at startup
+After=default.target
+
+[Service]
+ExecStart=/opt/scripts/run-on-boot.sh
+
+[Install]
+WantedBy=default.target
+" > /etc/systemd/system/run-on-boot.service
+
+systemctl enable run-on-boot.service
+
+mkdir -p /opt/scripts/run-on-boot-once
+
+echo "#!/bin/sh
+
+for file in /opt/scripts/run-on-boot-once/*; do
+  [ ! -f \"\$file\" ] && continue
+  \"\$file\"
+  rm \"\$file\"
+done
+"> /opt/scripts/run-on-boot.sh
+
+chmod +x /opt/scripts/run-on-boot.sh
+
+# The systemd-resolved stub resolver needs to be set up after reboot
+echo "#!/bin/sh
 ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+" > /opt/scripts/run-on-boot-once/01-stub-resolv.sh
+chmod +x /opt/scripts/run-on-boot-once/01-stub-resolv.sh
+
+
+# Time synchronization
+read -e -i "0.europe.pool.ntp.org 1.europe.pool.ntp.org" -r -p "List primary NTP servers: " ntp
+echo "[Time]
+NTP=${ntp}
+FallbackNTP=0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org
+" > /etc/systemd/timesyncd.conf
+
+# Enable NTP sync after reboot
+echo "#!/bin/sh
+timedatectl set-ntp true
+" > /opt/scripts/run-on-boot-once/02-enable-ntp.sh
+chmod +x /opt/scripts/run-on-boot-once/02-enable-ntp.sh
 
 
 # Initramfs
 mkinitcpio -P
 
 # Configure bootloader
-disk=$(lsblk -nrd -o NAME)
+disk=$(lsblk -nrd -o NAME -I 8)
 grub-install --target=i386-pc "/dev/${disk}"
 
 echo "GRUB_DEFAULT=0
@@ -80,16 +124,6 @@ GRUB_DISABLE_RECOVERY=true
 " > /etc/default/grub
 
 grub-mkconfig -o /boot/grub/grub.cfg
-
-
-# Time synchronization
-read -e -i "0.europe.pool.ntp.org 1.europe.pool.ntp.org" -r -p "List primary NTP servers: " ntp
-echo "[Time]
-NTP=${ntp}
-FallbackNTP=0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org
-" > /etc/systemd/timesyncd.conf
-
-timedatectl set-ntp true
 
 
 # FS optimization
@@ -129,6 +163,8 @@ echo "host github
   hostname github.com
   user git
 " > /home/dev/.ssh/config
+
+touch /home/dev/.ssh/known_hosts
 
 echo "export EDITOR=nano
 export VISUAL=nano
@@ -256,7 +292,9 @@ systemctl enable nginx.service
 
 
 echo "==> Done.
-    Add '${vmIP} ${hName}.test' to your host machine's /etc/hosts
-    Open http://${hName}.test in browser
-    SSH to ${hName} with 'ssh -A dev@${hName}.test'
+Please exit chroot, un-mount /mnt and reboot the VM.
+Add '${vmIP} ${hName}.test' to your host machine's 'hosts' file.
+Open http://${hName}.test in browser.
+SSH to ${hName} with 'ssh -A dev@${hName}.test'
+Mount files with 'sshfs -o idmap=user dev@${hName}.test:/srv/http /home/<you>/devbox'.
 "
