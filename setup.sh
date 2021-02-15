@@ -142,6 +142,7 @@ systemctl start systemd-journald
 
 # Install software
 pacman -Sy --noconfirm openssh nginx git bash-completion fzf unzip
+pacman -Scc --noconfirm
 
 
 # Users
