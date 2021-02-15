@@ -127,7 +127,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 
 # FS optimization
-sed -i "s|relatime|noatime|" /etc/fstab
+sed -i "s/relatime/noatime/g" /etc/fstab
 
 
 # Set smaller journal size
@@ -169,8 +169,13 @@ touch /home/dev/.ssh/known_hosts
 
 echo "export EDITOR=nano
 export VISUAL=nano
-export PATH=\"\${PATH}:\${HOME}/bin\"
-[[ -f ~/.bashrc ]] && . ~/.bashrc
+
+[ -d ~/bin ] && { PATH=\"\${PATH}:\${HOME}/bin\"; }
+[ -d ~/node/bin ] && { PATH=\"\${PATH}:\${HOME}/node/bin\"; }
+
+export PATH
+
+[ -f ~/.bashrc ] && . ~/.bashrc
 " > /home/dev/.bash_profile
 
 echo "[[ \$- != *i* ]] && return
