@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+PROJECT_DIR="/srv/http"
+
+shopt -s extglob
+
+# Check if we have WP-CLI
+command -v wp &> /dev/null || { echo "'wp' not found. Install WP-CLI and add it to PATH"; exit 1; }
+
+# Check for the presence of arguments
+[ "$#" -lt "1" ] && {
+  echo "Wipes the database for a WordPress website and reinstalls.
+
+    Usage: devbox-reset-wp your-wp-site.test
+
+    Available websites:";
+
+  for site in "${PROJECT_DIR}"/*.test; do
+    [ ! -d "${site}" ] && continue
+    echo "      - ${site##*/}"
+  done
+
+  exit 0;
+}
+
+site=${1}
+path="${PROJECT_DIR}/${1}"
+
+# Exit if site doesn't exist - bad argument
+[ ! -d "${path}" ] && { echo "Website ${site} doesn't exist!"; exit 1; }
+
+# Make sure that the website is a WordPress installation
+wp core is-installed --path="${path}" &> /dev/null || { echo "${site} is not a WordPress website!"; exit 1; }
+
+# All OK, use WP-CLI to reset and reinstall WordPress
+wp db reset --yes --path="${path}"
+wp core install --url="${site}" --title="$1" --admin_user=dev --admin_password=dev --admin_email="dev@${site}" --skip-email --path="${path}"
+wp site empty --yes --path="${path}"
+wp widget delete search-2 recent-posts-2 recent-comments-2 archives-2 categories-2 meta-2 --path="${path}"
+
+echo "Done."

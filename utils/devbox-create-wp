@@ -5,7 +5,16 @@ PLUGINS_DIR="/srv/http/wp-plugins"
 
 shopt -s extglob
 
-[ "$#" -lt "1" ] && { echo "Usage: $0 mysite"; exit 1; }
+# Check if we have WP-CLI
+command -v wp &> /dev/null || { echo "'wp' not found. Install WP-CLI and add it to PATH"; exit 1; }
+
+# Check for the presence of arguments
+[ "$#" -lt "1" ] && {
+  echo "Installs WordPress into ${PROJECT_DIR} under the specified name and sets up the Nginx web server.
+
+    Usage: devbox-create-wp mysite";
+  exit 0;
+}
 
 domain="${1}.test"
 dir="${PROJECT_DIR}/${domain}"

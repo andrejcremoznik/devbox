@@ -43,6 +43,20 @@ The folder `utils` contains various bash scripts to ease working on the Devbox.
 
 Download them to `/home/dev/bin/` and mark them as executable: `chmod u+x file`. They'll be in your PATH so you can run them from anywhere by their filename.
 
+Run as `dev` user to install:
+
+**devbox-create-wp** - install WordPress and configure Nginx
+
+```sh
+curl -o ~/bin/devbox-create-wp https://raw.githubusercontent.com/andrejcremoznik/devbox/master/utils/devbox-create-wp && chmod u+x ~/bin/devbox-create-wp
+```
+
+**devbox-reset-wp** - reset a WordPress website's DB and reinstall
+
+```sh
+curl -o ~/bin/devbox-create-wp https://raw.githubusercontent.com/andrejcremoznik/devbox/master/utils/devbox-reset-wp && chmod u+x ~/bin/devbox-reset-wp
+```
+
 
 ## License - MIT
 
