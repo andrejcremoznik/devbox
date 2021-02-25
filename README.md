@@ -54,7 +54,7 @@ curl -o ~/bin/devbox-create-wp https://raw.githubusercontent.com/andrejcremoznik
 **devbox-reset-wp** - reset a WordPress website's DB and reinstall
 
 ```sh
-curl -o ~/bin/devbox-create-wp https://raw.githubusercontent.com/andrejcremoznik/devbox/master/utils/devbox-reset-wp && chmod u+x ~/bin/devbox-reset-wp
+curl -o ~/bin/devbox-reset-wp https://raw.githubusercontent.com/andrejcremoznik/devbox/master/utils/devbox-reset-wp && chmod u+x ~/bin/devbox-reset-wp
 ```
 
 
