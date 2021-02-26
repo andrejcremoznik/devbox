@@ -13,7 +13,7 @@ command -v wp &> /dev/null || { echo "'wp' not found. Install WP-CLI and add it 
 
     Usage: devbox-reset-wp your-wp-site.test
 
-    Available websites:";
+    Available websites:"
 
   for site in "${PROJECT_DIR}"/*.test; do
     [ ! -d "${site}" ] && continue

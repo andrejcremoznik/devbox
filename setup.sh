@@ -9,47 +9,41 @@ ln -sf "/usr/share/zoneinfo/${tz}" /etc/localtime
 
 
 # Configure locale
-echo "en_US.UTF-8 UTF-8
-" > /etc/locale.gen
+echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
 
 locale-gen
 
-echo "LANG=en_US.UTF-8
-" > /etc/locale.conf
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 
 # Configure hostname and hosts
 read -e -i "devbox" -r -p "Hostname for this devbox: " hName
 
-echo "${hName}
-" > /etc/hostname
+echo "${hName}" > /etc/hostname
 
 echo "127.0.0.1 localhost
 ::1 localhost
 127.0.1.1 ${hName}.localdomain ${hName}
-127.0.1.1 ${hName}.test
-" > /etc/hosts
+127.0.1.1 ${hName}.test" > /etc/hosts
 
 
 # Configure networks
 mkdir -p /etc/systemd/network
 
-nat_adapter=$(ip link show | grep "enp" | cut -d "<" -f 1 | tr -d ":" | cut -d " " -f 2 | head -n 1)
-host_adapter=$(ip link show | grep "enp" | cut -d "<" -f 1 | tr -d ":" | cut -d " " -f 2 | tail -n 1)
+nat_adapter=$(ip -br link show | grep enp | cut -d " " -f 1 | head -n 1)
+host_adapter=$(ip -br link show | grep enp | cut -d " " -f 1 | tail -n 1)
 
 echo "[Match]
 Name=${nat_adapter}
 [Network]
-DHCP=ipv4
-" > /etc/systemd/network/dhcp.network
+DHCP=ipv4" > /etc/systemd/network/dhcp.network
 
 read -e -i "10.10.0.2" -r -p "IP for this devbox: " vmIP # the IP depends on VM adapter configuration
 
 echo "[Match]
 Name=${host_adapter}
 [Network]
-Address=${vmIP}/24
-" > /etc/systemd/network/host.network
+Address=${vmIP}/24" > /etc/systemd/network/host.network
 
 systemctl enable systemd-networkd.service
 systemctl enable systemd-resolved.service
@@ -63,8 +57,7 @@ After=default.target
 ExecStart=/opt/scripts/run-on-boot.sh
 
 [Install]
-WantedBy=default.target
-" > /etc/systemd/system/run-on-boot.service
+WantedBy=default.target" > /etc/systemd/system/run-on-boot.service
 
 systemctl enable run-on-boot.service
 
@@ -76,15 +69,13 @@ for file in /opt/scripts/run-on-boot-once/*; do
   [ ! -f \"\$file\" ] && continue
   \"\$file\"
   rm \"\$file\"
-done
-"> /opt/scripts/run-on-boot.sh
+done"> /opt/scripts/run-on-boot.sh
 
 chmod +x /opt/scripts/run-on-boot.sh
 
 # The systemd-resolved stub resolver needs to be set up after reboot
 echo "#!/bin/sh
-ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-" > /opt/scripts/run-on-boot-once/01-stub-resolv.sh
+ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf" > /opt/scripts/run-on-boot-once/01-stub-resolv.sh
 chmod +x /opt/scripts/run-on-boot-once/01-stub-resolv.sh
 
 
@@ -92,13 +83,11 @@ chmod +x /opt/scripts/run-on-boot-once/01-stub-resolv.sh
 read -e -i "0.europe.pool.ntp.org 1.europe.pool.ntp.org" -r -p "List primary NTP servers: " ntp
 echo "[Time]
 NTP=${ntp}
-FallbackNTP=0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org
-" > /etc/systemd/timesyncd.conf
+FallbackNTP=0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org" > /etc/systemd/timesyncd.conf
 
 # Enable NTP sync after reboot
 echo "#!/bin/sh
-timedatectl set-ntp true
-" > /opt/scripts/run-on-boot-once/02-enable-ntp.sh
+timedatectl set-ntp true" > /opt/scripts/run-on-boot-once/02-enable-ntp.sh
 chmod +x /opt/scripts/run-on-boot-once/02-enable-ntp.sh
 
 
@@ -120,8 +109,7 @@ GRUB_TERMINAL_INPUT=console
 GRUB_TERMINAL_OUTPUT=console
 GRUB_GFXMODE=auto
 GRUB_GFXPAYLOAD_LINUX=keep
-GRUB_DISABLE_RECOVERY=true
-" > /etc/default/grub
+GRUB_DISABLE_RECOVERY=true" > /etc/default/grub
 
 grub-mkconfig -o /boot/grub/grub.cfg
 
@@ -133,8 +121,7 @@ sed -i "s/relatime/noatime/g" /etc/fstab
 # Set smaller journal size
 mkdir -p /etc/systemd/journal.conf.d
 echo "[Journal]
-SystemMaxUse=8M
-" > /etc/systemd/journal.conf.d/journal-size.conf
+SystemMaxUse=8M" > /etc/systemd/journal.conf.d/journal-size.conf
 systemctl stop systemd-journald
 rm -fr /var/log/journal/*
 systemctl start systemd-journald
@@ -154,29 +141,26 @@ useradd -m -G http -s /bin/bash dev
 echo "Password for the dev user"
 passwd dev
 
-echo "dev ALL=(ALL) ALL
-" >> /etc/sudoers
+echo "dev ALL=(ALL) ALL" >> /etc/sudoers
 
 # Dev user configuration
 mkdir -p /home/dev/{.ssh,bin}
 
 echo "host github
   hostname github.com
-  user git
-" > /home/dev/.ssh/config
+  user git" > /home/dev/.ssh/config
 
 touch /home/dev/.ssh/known_hosts
 
 echo "export EDITOR=nano
 export VISUAL=nano
 
-[ -d ~/bin ] && { PATH=\"\${PATH}:\${HOME}/bin\"; }
-[ -d ~/node/bin ] && { PATH=\"\${PATH}:\${HOME}/node/bin\"; }
+[ -d ~/bin ] && { PATH=\"\${HOME}/bin:\${PATH}\"; }
+[ -d ~/node/bin ] && { PATH=\"\${HOME}/node/bin:\${PATH}\"; }
 
 export PATH
 
-[ -f ~/.bashrc ] && . ~/.bashrc
-" > /home/dev/.bash_profile
+[ -f ~/.bashrc ] && . ~/.bashrc" > /home/dev/.bash_profile
 
 echo "[[ \$- != *i* ]] && return
 
@@ -205,8 +189,7 @@ source /usr/share/fzf/completion.bash
 complete -o bashdefault -o default -F _fzf_path_completion nano
 
 # Default prompt (w instead of W if you want full path)
-PS1='[\\u@\\h \\W]\\\$ '
-" > /home/dev/.bashrc
+PS1='[\\u@\\h \\W]\\\$ '" > /home/dev/.bashrc
 
 echo "Setting up .gitconfig"
 read -r -p "Your name: " gitName
@@ -228,8 +211,7 @@ echo "[user]
   prb = pull --rebase
   rprune = remote update --prune
 [push]
-  default = simple
-" > /home/dev/.gitconfig
+  default = simple" > /home/dev/.gitconfig
 
 chown -R dev:dev /home/dev
 
@@ -241,8 +223,7 @@ ChallengeResponseAuthentication no
 UsePAM yes
 AllowAgentForwarding yes
 PrintMotd no
-Subsystem sftp /usr/lib/ssh/sftp-server
-" > /etc/ssh/sshd_config
+Subsystem sftp /usr/lib/ssh/sftp-server" > /etc/ssh/sshd_config
 systemctl enable sshd.service
 
 
@@ -276,13 +257,11 @@ http {
     return 444;
   }
   include sites/*.conf;
-}
-" > /etc/nginx/nginx.conf
+}" > /etc/nginx/nginx.conf
 
 mkdir -p "/srv/http/${hName}.test"
 echo "<!DOCTYPE html>
-<h1>Devbox: <em>${hName}</em></h1>
-" > "/srv/http/${hName}.test/index.html"
+<h1>Devbox: <em>${hName}</em></h1>" > "/srv/http/${hName}.test/index.html"
 
 chown -R dev:dev /srv/http
 
@@ -292,8 +271,7 @@ echo "server {
   server_name ${hName}.test;
   root        /srv/http/${hName}.test;
   access_log  off;
-}
-" > "/etc/nginx/sites/${hName}.test.conf"
+}" > "/etc/nginx/sites/${hName}.test.conf"
 
 systemctl enable nginx.service
 
@@ -303,5 +281,4 @@ Please exit chroot, un-mount /mnt and reboot the VM.
 Add '${vmIP} ${hName}.test' to your host machine's 'hosts' file.
 Open http://${hName}.test in browser.
 SSH to ${hName} with 'ssh -A dev@${hName}.test'
-Mount files with 'sshfs -o idmap=user dev@${hName}.test:/srv/http /home/<you>/devbox'.
-"
+Mount files with 'sshfs -o idmap=user dev@${hName}.test:/srv/http /home/<you>/devbox'."

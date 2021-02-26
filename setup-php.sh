@@ -23,11 +23,9 @@ extension=iconv.so
 extension=intl.so
 
 [Date]
-date.timezone = \"${tz}\"
-" > /etc/php/conf.d/00-devbox.ini
+date.timezone = \"${tz}\"" > /etc/php/conf.d/00-devbox.ini
 
-echo "extension=imagick
-" > /etc/php/conf.d/imagick.ini
+echo "extension=imagick" > /etc/php/conf.d/imagick.ini
 
 systemctl start php-fpm.service
 systemctl enable php-fpm.service
@@ -41,14 +39,10 @@ echo "To enable PHP-FPM in Nginx vhost configuration add the following block to 
     fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
     fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
   }
-
 "
 
 read -r -p "Install Composer and WP-CLI? (y/n): " withTools
-if [ "${withTools}" != "y" ]; then
-  echo "==> Done."
-  exit
-fi
+[ "${withTools}" != "y" ] && { echo "==> Done."; exit 0; }
 
 pacman -S --noconfirm composer
 

@@ -12,8 +12,8 @@ command -v wp &> /dev/null || { echo "'wp' not found. Install WP-CLI and add it 
 [ "$#" -lt "1" ] && {
   echo "Installs WordPress into ${PROJECT_DIR} under the specified name and sets up the Nginx web server.
 
-    Usage: devbox-create-wp mysite";
-  exit 0;
+    Usage: devbox-create-wp mysite"
+  exit 0
 }
 
 domain="${1}.test"
@@ -27,7 +27,7 @@ dir="${PROJECT_DIR}/${domain}"
 if [ ! -d ${PLUGINS_DIR} ]; then
   echo "If you create ${PLUGINS_DIR} and put shared WordPress plugins in (unzipped), they will be available in ${1}."
   read -r -p "Continue anyway? (y/n): " cnt
-  [ "${cnt}" != "y" ] && exit 0;
+  [ "${cnt}" != "y" ] && exit 0
 fi
 
 # Download WP

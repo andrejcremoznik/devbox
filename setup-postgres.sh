@@ -11,16 +11,12 @@ su -c "createuser -d -r -s dev" postgres
 su -c "createdb dev" dev
 
 read -r -p "Install PHP-FPM extension? (y/n): " withPhp
-if [ "${withPhp}" != "y" ]; then
-  echo "==> Done."
-  exit
-fi
+[ "${withPhp}" != "y" ] && { echo "==> Done."; exit 0; }
 
 pacman -S --noconfirm php-pgsql
 
 echo "extension=pdo_pgsql.so
-extension=pgsql.so
-" > /etc/php/conf.d/pgsql.ini
+extension=pgsql.so" > /etc/php/conf.d/pgsql.ini
 
 systemctl restart php-fpm.service
 
