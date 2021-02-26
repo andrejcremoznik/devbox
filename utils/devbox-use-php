@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Check for the presence of arguments
+[ "$#" -lt "1" ] && {
+  echo "Configure current shell to use a specific major PHP version.
+
+    Usage: devbox-use-php 7"
+  exit 0
+}
+
+binary="php${1}"
+wanted="/usr/bin/${binary}"
+
+[ ! -f "${wanted}" ] && {
+  echo "'${binary}' not found. Using 'php'."
+  wanted="/usr/bin/php"
+}
+
+ln -sf ${wanted} /home/dev/bin/php
+
+inUse=$(php -nr "echo phpversion();")
+
+echo "Shell configured to use PHP ${inUse}."

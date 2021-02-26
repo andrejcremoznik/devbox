@@ -13,9 +13,22 @@ Install and configure an Arch Linux VM for use as a web development environment.
 6. Pacstrap: `pacstrap /mnt base linux-lts base-devel man-db man-pages texinfo nano grub`
 7. Fstab: `genfstab -U /mnt >> /mnt/etc/fstab`
 8. Chroot: `arch-chroot /mnt`
-9. Download `setup.sh` and run it: `curl -O https://raw.githubusercontent.com/andrejcremoznik/devbox/master/setup.sh`
+9. Download `setup.sh` and run it:
+   ```sh
+   curl -O https://raw.githubusercontent.com/andrejcremoznik/devbox/master/setup.sh
+   chmod +x setup.sh
+   ./setup.sh
+   ```
 
-Run any other scripts for extra functionality.
+Run any other scripts for extra functionality. Recommended order:
+
+1. `setup-php.sh`
+2. `setup-mysql.sh`
+3. `setup-postgres.sh`
+4. `setup-redis.sh`
+5. `setup-nodejs.sh`
+6. `setup-localmail.sh`
+7. `setup-php7.sh`
 
 
 ### VirtualBox VM configuration
@@ -55,6 +68,14 @@ curl -o ~/bin/devbox-create-wp https://raw.githubusercontent.com/andrejcremoznik
 
 ```sh
 curl -o ~/bin/devbox-reset-wp https://raw.githubusercontent.com/andrejcremoznik/devbox/master/utils/devbox-reset-wp && chmod u+x ~/bin/devbox-reset-wp
+```
+
+**devbox-use-php** - use a different PHP version in your shell
+
+This is only useful if you've installed php7.
+
+```sh
+curl -o ~/bin/devbox-use-php https://raw.githubusercontent.com/andrejcremoznik/devbox/master/utils/devbox-use-php && chmod u+x ~/bin/devbox-use-php
 ```
 
 
