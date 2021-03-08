@@ -54,6 +54,16 @@ Run any other scripts for extra functionality. Recommended order:
 
 The folder `utils` contains various bash scripts to ease working on the Devbox.
 
+The scripts can be configured with the following environment variables:
+
+```
+# The directory containing your websites
+DEVBOX_PROJECT_DIR="/srv/http"
+
+# The directory for 3rd party WP plugins that are shared between installations
+DEVBOX_PLUGINS_DIR="/srv/http/wp-plugins"
+```
+
 Download them to `/home/dev/bin/` and mark them as executable: `chmod u+x file`. They'll be in your PATH so you can run them from anywhere by their filename.
 
 Run as `dev` user to install:
@@ -72,7 +82,7 @@ curl -o ~/bin/devbox-reset-wp https://raw.githubusercontent.com/andrejcremoznik/
 
 **devbox-use-php** - use a different PHP version in your shell
 
-This is only useful if you've installed php7.
+This is only useful if you've installed `php7`.
 
 ```sh
 curl -o ~/bin/devbox-use-php https://raw.githubusercontent.com/andrejcremoznik/devbox/master/utils/devbox-use-php && chmod u+x ~/bin/devbox-use-php

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PROJECT_DIR="/srv/http"
+[ -z "${DEVBOX_PROJECT_DIR}" ] && DEVBOX_PROJECT_DIR="/srv/http"
 
 shopt -s extglob
 
@@ -15,7 +15,7 @@ command -v wp &> /dev/null || { echo "'wp' not found. Install WP-CLI and add it 
 
     Available websites:"
 
-  for site in "${PROJECT_DIR}"/*.test; do
+  for site in "${DEVBOX_PROJECT_DIR}"/*.test; do
     [ ! -d "${site}" ] && continue
     echo "      - ${site##*/}"
   done
@@ -24,7 +24,7 @@ command -v wp &> /dev/null || { echo "'wp' not found. Install WP-CLI and add it 
 }
 
 site=${1}
-path="${PROJECT_DIR}/${1}"
+path="${DEVBOX_PROJECT_DIR}/${1}"
 
 # Exit if site doesn't exist - bad argument
 [ ! -d "${path}" ] && { echo "Website ${site} doesn't exist!"; exit 1; }
@@ -32,8 +32,31 @@ path="${PROJECT_DIR}/${1}"
 # Make sure that the website is a WordPress installation
 wp core is-installed --path="${path}" &> /dev/null || { echo "${site} is not a WordPress website!"; exit 1; }
 
-# All OK, use WP-CLI to reset and reinstall WordPress
+# Ask to make a backup
+read -r -p "Create a database backup of the existing installation? (y/n): " bkp
+[ "${bkp}" == "y" ] && {
+  date=$(date "+%Y-%m-%dT%H:%M")
+  wp db export "${path}/bkp-${date}.sql" --path="${path}"
+}
+
+# All OK, use WP-CLI to reset
 wp db reset --yes --path="${path}"
+
+# Ask to import an existing SQL dump
+ls "${path}"/*.sql &> /dev/null && {
+  echo "Available SQL dumps:"
+  for sql in "${path}"/*.sql; do echo "  - ${sql##*/}"; done
+  echo ""
+  read -r -p "Enter name of SQL dump to use or leave blank for a fresh install: " dump
+  [ -z "${dump}" ] || [ ! -f "${path}/${dump}" ] && echo "Installing fresh..."
+  [ -f "${path}/${dump}" ] && {
+    wp db import "${path}/${dump}" --path="${path}"
+    echo "Done."
+    exit 0
+  }
+}
+
+# Or reinstall WordPress
 wp core install --url="${site}" --title="$1" --admin_user=dev --admin_password=dev --admin_email="dev@${site}" --skip-email --path="${path}"
 wp site empty --yes --path="${path}"
 wp widget delete search-2 recent-posts-2 recent-comments-2 archives-2 categories-2 meta-2 --path="${path}"

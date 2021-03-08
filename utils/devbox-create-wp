@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-PROJECT_DIR="/srv/http"
-PLUGINS_DIR="/srv/http/wp-plugins"
+[ -z "${DEVBOX_PROJECT_DIR}" ] && DEVBOX_PROJECT_DIR="/srv/http"
+[ -z "${DEVBOX_PLUGINS_DIR}" ] && DEVBOX_PLUGINS_DIR="/srv/http/wp-plugins"
 
 shopt -s extglob
 
@@ -10,22 +10,22 @@ command -v wp &> /dev/null || { echo "'wp' not found. Install WP-CLI and add it 
 
 # Check for the presence of arguments
 [ "$#" -lt "1" ] && {
-  echo "Installs WordPress into ${PROJECT_DIR} under the specified name and sets up the Nginx web server.
+  echo "Installs WordPress into ${DEVBOX_PROJECT_DIR} under the specified name and sets up the Nginx web server.
 
     Usage: devbox-create-wp mysite"
   exit 0
 }
 
 domain="${1}.test"
-dir="${PROJECT_DIR}/${domain}"
+dir="${DEVBOX_PROJECT_DIR}/${domain}"
 
 # Checks
 [ -d "${dir}" ] && { echo "${1} already exists!"; exit 1; }
 
-[ ! -d ${PROJECT_DIR} ] && { echo "Projects directory ${PROJECT_DIR} doesn't exist!"; exit 1; }
+[ ! -d "${DEVBOX_PROJECT_DIR}" ] && { echo "Projects directory ${DEVBOX_PROJECT_DIR} doesn't exist!"; exit 1; }
 
-if [ ! -d ${PLUGINS_DIR} ]; then
-  echo "If you create ${PLUGINS_DIR} and put shared WordPress plugins in (unzipped), they will be available in ${1}."
+if [ ! -d "${DEVBOX_PLUGINS_DIR}" ]; then
+  echo "If you create ${DEVBOX_PLUGINS_DIR} and put shared WordPress plugins in (unzipped), they will be available in ${1}."
   read -r -p "Continue anyway? (y/n): " cnt
   [ "${cnt}" != "y" ] && exit 0
 fi
@@ -46,10 +46,8 @@ rm -fr "${dir}"/wp-content/plugins/*
 rm -fr "${dir}"/wp-content/themes/!(twentytwentyone)
 
 # Symlink shared plugins
-if [ -d ${PLUGINS_DIR} ]; then
-  for plugin in "${PLUGINS_DIR}"/*; do
-    ln -s "${plugin}" "${dir}/wp-content/plugins/"
-  done
+if [ -d "${DEVBOX_PLUGINS_DIR}" ]; then
+  ln -s "${DEVBOX_PLUGINS_DIR}"/* "${dir}/wp-content/plugins/"
 fi
 
 # Set up wp-config.php
