@@ -35,7 +35,7 @@ wp core is-installed --path="${path}" &> /dev/null || { echo "${site} is not a W
 # Ask to make a backup
 read -r -p "Create a database backup of the existing installation? (y/n): " bkp
 [ "${bkp}" == "y" ] && {
-  date=$(date "+%Y-%m-%dT%H:%M")
+  date=$(date "+%Y-%m-%dT%H%M")
   wp db export "${path}/bkp-${date}.sql" --path="${path}"
 }
 
