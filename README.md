@@ -62,6 +62,9 @@ DEVBOX_PROJECT_DIR="/srv/http"
 
 # The directory for 3rd party WP plugins that are shared between installations
 DEVBOX_PLUGINS_DIR="/srv/http/wp-plugins"
+
+# The directory for SSL certs
+DEVBOX_CERTS_DIR="/srv/http/certs"
 ```
 
 Download them to `/home/dev/bin/` and mark them as executable: `chmod u+x file`. They'll be in your PATH so you can run them from anywhere by their filename.
@@ -94,7 +97,7 @@ curl -o ~/bin/devbox-use-php https://raw.githubusercontent.com/andrejcremoznik/d
 curl -o ~/bin/devbox-create-cert https://raw.githubusercontent.com/andrejcremoznik/devbox/master/utils/devbox-use-php && chmod u+x ~/bin/devbox-create-cert
 ```
 
-If you create a new root certificate with this, that certificate should be installed system-wide. How to install root certificates differs from OS to OS.
+If you create a new root certificate with this, that certificate should be installed system-wide. How to install root certificates differs from OS to OS; search the web for instructions.
 
 
 ## License - MIT
