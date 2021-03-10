@@ -20,7 +20,7 @@ command -v wp &> /dev/null || { echo "'wp' not found. Install WP-CLI and add it 
     echo "      - ${site##*/}"
   done
 
-  exit 0;
+  exit 0
 }
 
 site=${1}

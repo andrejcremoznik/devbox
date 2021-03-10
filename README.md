@@ -88,6 +88,14 @@ This is only useful if you've installed `php7`.
 curl -o ~/bin/devbox-use-php https://raw.githubusercontent.com/andrejcremoznik/devbox/master/utils/devbox-use-php && chmod u+x ~/bin/devbox-use-php
 ```
 
+**devbox-create-cert** - create a self-signed SSL certificate
+
+```sh
+curl -o ~/bin/devbox-create-cert https://raw.githubusercontent.com/andrejcremoznik/devbox/master/utils/devbox-use-php && chmod u+x ~/bin/devbox-create-cert
+```
+
+If you create a new root certificate with this, that certificate should be installed system-wide. How to install root certificates differs from OS to OS.
+
 
 ## License - MIT
 

@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+
+[ -z "${DEVBOX_PROJECT_DIR}" ] && DEVBOX_PROJECT_DIR="/srv/http"
+[ -z "${DEVBOX_CERTS_DIR}" ] && DEVBOX_CERTS_DIR="/srv/http/certs"
+
+[ "$#" -lt "1" ] && {
+  echo "Create an HTTPS certificate for a domain.
+
+  Usage: devbox-create-cert your-site.test"
+  exit 0
+}
+
+[ ! -d "${DEVBOX_CERTS_DIR}" ] && mkdir -p "${DEVBOX_CERTS_DIR}"
+
+caname="devbox"
+capath="${DEVBOX_CERTS_DIR}/${caname}"
+cakey="${capath}.key"
+cacrt="${capath}.crt"
+
+# If no root cert exists, create one
+[ ! -f "${cacrt}" ] && {
+  echo "No self-signed root certificate was found in ${DEVBOX_CERTS_DIR}. If you already have your own root certificate, make the following files available:
+
+  - ${cacrt}
+  - ${cakey}"
+
+  read -r -p "Create a new self-signed root certificate now? (y/n): " createCert
+  [ "${createCert}" != "y" ] && { echo "Run devbox-create-cert again once you've set up your root certificate."; exit 0; }
+
+  openssl req -x509 -sha256 -days 3650 -newkey rsa:2048 -nodes -subj "/C=US/CN=Devbox" -keyout "${cakey}" -out "${cacrt}"
+
+  [ -f "${cacrt}" ] || { echo "Certificate creation failed."; exit 1; }
+
+  echo "Your root certificate has been successfully created.
+Please type in the 'sudo' password for system-wide installation..."
+
+  sudo cp "${cacrt}" /etc/ca-certificates/trust-source/anchors/
+  sudo trust extract-compat
+
+  echo "Done. You'll also need to install ${cacrt} on your host computer. Firstly, copy the file to your local filesystem, then:
+
+  Arch Linux (and potentially other distros):
+    sudo cp ${caname}.crt /etc/ca-certificates/trust-source/anchors/
+    sudo trust extract-compat
+
+  Others: Search the web for 'install self-signed certificate as trusted root CA in <some OS>'.
+
+Having this certificate installed system-wide will allow all applications to load your websites over HTTPS without invalid certificate errors."
+}
+
+# Create cert for domain
+domain="${1}"
+domainpath="${DEVBOX_CERTS_DIR}/${domain}"
+domainfile="${domainpath}/${domain}"
+
+[ -d "${domainpath}" ] && { echo "${domainpath} already exists. Exiting ..."; exit 1; }
+
+mkdir -p "${domainpath}"
+
+# openssl genrsa -out "${domainfile}.key" 2048
+openssl req -newkey rsa:2048 -nodes -subj "/C=US/CN=${domain}" -keyout "${domainfile}.key" -out "${domainfile}.csr"
+
+echo "authorityKeyIdentifier = keyid:always,issuer:always
+basicConstraints = CA:false
+keyUsage = digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment
+subjectAltName = DNS:${domain}" > "${domainfile}.conf"
+
+openssl x509 -req -sha256 -days 3650 \
+  -CA "${cacrt}" -CAkey "${cakey}" -CAcreateserial \
+  -extfile "${domainfile}.conf" \
+  -in "${domainfile}.csr" \
+  -out "${domainfile}.crt"
+
+echo "The certificate for ${domain} has been succesfully created.
+  Certificate: ${domainfile}.crt
+  Certificate key: ${domainfile}.key"
+
+# Check if we have a website for the domain already set up and offer to install Nginx config
+webroot="${DEVBOX_PROJECT_DIR}/${domain}"
+[ ! -d "${webroot}" ] && exit 0
+
+read -r -p "Create an Nginx configuration for https://${domain}? (y/n): " createNginx
+[ "${createNginx}" != "y" ] && { echo "Done."; exit 0; }
+
+# Create common SSL config file if needed
+[ ! -d /etc/nginx/conf.d ] && sudo mkdir -p /etc/nginx/conf.d
+[ ! -f /etc/nginx/conf.d/ssl.conf ] && {
+  echo "ssl_protocols TLSv1.3;
+ssl_prefer_server_ciphers off;
+ssl_session_cache shared:SSL:10m;
+ssl_session_timeout 1d;
+ssl_session_tickets off;
+ssl_stapling off;
+keepalive_timeout 300s;" | sudo tee /etc/nginx/conf.d/ssl.conf > /dev/null
+}
+
+# Create SSL config for domain
+echo "server {
+  listen [::]:443 ssl http2;
+  listen 443 ssl http2;
+  server_name ${domain};
+  include /etc/nginx/conf.d/ssl.conf;
+  ssl_certificate ${domainfile}.crt;
+  ssl_certificate_key ${domainfile}.key;
+  root ${webroot};
+  index index.html index.php;
+  access_log off;
+  error_log /var/log/nginx/${domain}.log error;
+  client_max_body_size 20m;
+  location ~ \\.php$ {
+    try_files \$uri =404;
+    fastcgi_index index.php;
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
+  }
+  #REWRITES
+}" | sudo tee "/etc/nginx/sites/${domain}.https.conf" > /dev/null
+
+# If it's WordPress, add a rewrite rule
+if [ -f "${webroot}/wp-config.php" ]; then
+  sudo sed -i "s|#REWRITES|location / { try_files \$uri \$uri/ /index.php\$is_args\$args; }|" "/etc/nginx/sites/${domain}.https.conf"
+else
+  sudo sed -i "s|#REWRITES||" "/etc/nginx/sites/${domain}.https.conf"
+fi
+
+sudo systemctl restart nginx.service
+
+echo "Done.
+HTTPS Nginx config created in /etc/nginx/sites/${domain}.https.conf.
+You can now visit https://${domain}."
