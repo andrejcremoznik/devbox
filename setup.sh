@@ -80,10 +80,11 @@ chmod +x /opt/scripts/run-on-boot-once/01-stub-resolv.sh
 
 
 # Time synchronization
+mkdir -p /etc/systemd/system.conf.d
 read -e -i "0.europe.pool.ntp.org 1.europe.pool.ntp.org" -r -p "List primary NTP servers: " ntp
 echo "[Time]
 NTP=${ntp}
-FallbackNTP=0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org" > /etc/systemd/timesyncd.conf
+FallbackNTP=0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org 3.pool.ntp.org" > /etc/systemd/system.conf.d/timesyncd.conf
 
 # Enable NTP sync after reboot
 echo "#!/bin/sh
