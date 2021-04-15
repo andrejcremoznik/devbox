@@ -37,6 +37,7 @@ read -r -p "Create a database backup of the existing installation? (y/n): " bkp
 [ "${bkp}" == "y" ] && {
   date=$(date "+%Y-%m-%dT%H%M")
   wp transient delete --all --path="${path}"
+  wp cache flush --path="${path}"
   wp db export "${path}/bkp-${date}.sql" --path="${path}"
 }
 
@@ -52,6 +53,8 @@ ls "${path}"/*.sql &> /dev/null && {
   [ -z "${dump}" ] || [ ! -f "${path}/${dump}" ] && echo "Installing fresh..."
   [ -f "${path}/${dump}" ] && {
     wp db import "${path}/${dump}" --path="${path}"
+    wp transient delete --all --path="${path}"
+    wp cache flush --path="${path}"
     echo "Done."
     exit 0
   }
