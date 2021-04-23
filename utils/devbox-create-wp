@@ -20,7 +20,11 @@ domain="${1}.test"
 dir="${DEVBOX_PROJECT_DIR}/${domain}"
 
 # Checks
-[ -d "${dir}" ] && { echo "${1} already exists!"; exit 1; }
+[ -d "${dir}" ] && {
+  read -r -p "${1} already exists! To force a reinstall type '${1}' and press enter: " reinstall
+  [ "${reinstall}" != "${1}" ] && { echo "Exiting."; exit 0; }
+  rm -fr "${dir}"
+}
 
 [ ! -d "${DEVBOX_PROJECT_DIR}" ] && { echo "Projects directory ${DEVBOX_PROJECT_DIR} doesn't exist!"; exit 1; }
 
@@ -53,16 +57,22 @@ fi
 # Set up wp-config.php
 cp "${dir}/wp-config-sample.php" "${dir}/wp-config.php"
 
-sed -i "s/database_name_here/$1/g" "${dir}/wp-config.php"
+sed -i "s/database_name_here/${1}/g" "${dir}/wp-config.php"
 sed -i "s/username_here/root/g" "${dir}/wp-config.php"
 sed -i "s/password_here/root/g" "${dir}/wp-config.php"
 sed -i "s/'WP_DEBUG', false/'WP_DEBUG', true/g" "${dir}/wp-config.php"
 
 # Install WP
+wp db drop --yes --path="${dir}" 2> /dev/null
 wp db create --path="${dir}"
-wp core install --url="${domain}" --title="$1" --admin_user=dev --admin_password=dev --admin_email="dev@${domain}" --skip-email --path="${dir}"
+wp core install --url="${domain}" --title="${1}" --admin_user=dev --admin_password=dev --admin_email="dev@${domain}" --skip-email --path="${dir}"
 wp site empty --yes --path="${dir}"
 wp widget delete search-2 recent-posts-2 recent-comments-2 archives-2 categories-2 meta-2 --path="${dir}"
+
+[ -f "/etc/nginx/sites/${domain}.conf" ] && {
+  echo "Nginx already set up. Site available at http://${domain}."
+  exit 0
+}
 
 echo "Setting up Nginx, need sudo password:"
 echo "server {
