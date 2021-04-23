@@ -30,15 +30,15 @@ path="${DEVBOX_PROJECT_DIR}/${1}"
 [ ! -d "${path}" ] && { echo "Website ${site} doesn't exist!"; exit 1; }
 
 # Make sure that the website is a WordPress installation
-wp core is-installed --path="${path}" &> /dev/null || { echo "${site} is not a WordPress website!"; exit 1; }
+wp core is-installed --path="${path}" &> /dev/null || { echo "${site}: WordPress is not installed!"; exit 1; }
 
 # Ask to make a backup
-read -r -p "Create a database backup of the existing installation? (y/n): " bkp
-[ "${bkp}" == "y" ] && {
-  date=$(date "+%Y-%m-%dT%H%M")
+read -r -p "Enter file name for a database backup (empty to skip): " bkp
+[ -n "${bkp}" ] && {
+  name="${bkp%.sql}.sql"
   wp transient delete --all --path="${path}"
   wp cache flush --path="${path}"
-  wp db export "${path}/bkp-${date}.sql" --path="${path}"
+  wp db export "${path}/${name}" --path="${path}"
 }
 
 # All OK, use WP-CLI to reset
@@ -61,7 +61,7 @@ ls "${path}"/*.sql &> /dev/null && {
 }
 
 # Or reinstall WordPress
-wp core install --url="${site}" --title="$1" --admin_user=dev --admin_password=dev --admin_email="dev@${site}" --skip-email --path="${path}"
+wp core install --url="${site}" --title="${1}" --admin_user=dev --admin_password=dev --admin_email="dev@${site}" --skip-email --path="${path}"
 wp site empty --yes --path="${path}"
 wp widget delete search-2 recent-posts-2 recent-comments-2 archives-2 categories-2 meta-2 --path="${path}"
 
