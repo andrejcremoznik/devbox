@@ -129,7 +129,7 @@ systemctl start systemd-journald
 
 
 # Install software
-pacman -Sy --noconfirm openssh nginx git bash-completion fzf unzip
+pacman -Sy --noconfirm openssh nginx git bash-completion fzf zip unzip
 pacman -Scc --noconfirm
 
 
