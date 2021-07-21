@@ -107,12 +107,16 @@ echo "server {
   access_log off;
   error_log /var/log/nginx/${domain}.log error;
   client_max_body_size 20m;
+  # Rewrite URLs to missing files to upstream URLs
+  #location /wp-content/uploads/ { try_files \$uri @upstream; }
+  #location @upstream { rewrite ^ https://production.tld/\$request_uri permanent; }
   location ~ \\.php$ {
     try_files \$uri =404;
     fastcgi_index index.php;
     include fastcgi_params;
     fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
     fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
+    # fastcgi_pass unix:/run/php-fpm7/php-fpm.sock;
   }
   #REWRITES
 }" | sudo tee "/etc/nginx/sites/${domain}.https.conf" > /dev/null

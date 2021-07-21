@@ -67,7 +67,6 @@ wp db drop --yes --path="${dir}" 2> /dev/null
 wp db create --path="${dir}"
 wp core install --url="${domain}" --title="${1}" --admin_user=dev --admin_password=dev --admin_email="dev@${domain}" --skip-email --path="${dir}"
 wp site empty --yes --path="${dir}"
-wp widget delete search-2 recent-posts-2 recent-comments-2 archives-2 categories-2 meta-2 --path="${dir}"
 
 [ -f "/etc/nginx/sites/${domain}.conf" ] && {
   echo "Nginx already set up. Site available at http://${domain}."
@@ -83,12 +82,16 @@ echo "server {
   access_log off;
   error_log /var/log/nginx/${domain}.log error;
   client_max_body_size 20m;
+  # Rewrite URLs to missing files to upstream URLs
+  #location /wp-content/uploads/ { try_files \$uri @upstream; }
+  #location @upstream { rewrite ^ https://production.tld/\$request_uri permanent; }
   location ~ \\.php$ {
     try_files \$uri =404;
     fastcgi_index index.php;
     include fastcgi_params;
     fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
     fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
+    # fastcgi_pass unix:/run/php-fpm7/php-fpm.sock;
   }
   location / { try_files \$uri \$uri/ /index.php\$is_args\$args; }
 }" | sudo tee "/etc/nginx/sites/${domain}.conf" > /dev/null
