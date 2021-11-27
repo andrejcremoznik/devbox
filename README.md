@@ -33,16 +33,17 @@ Run any other scripts for extra functionality. Recommended order:
 
 ### VirtualBox VM configuration
 
-1. Configure basic things like memory, number of CPUs and a disk drive image. Decide on a reasonable disk growth limit, because expanding it afterwards is annoying.
+1. Configure basic things like memory, number of CPUs and a disk drive image. Decide on a reasonable disk growth limit because expanding it afterwards is annoying.
 2. Disable Audio and USB Controllers
 3. Add 2 network adapters:
    1. Adapter 1: NAT
-   2. Adapter 2: Host-only Adapter. Configure the Host-only adapter via File > Host Network Manager, create new adapter with IPv4 `10.10.0.1`, mask `255.255.255.0` and DHCP off.
+   2. Adapter 2: Host-only Adapter. Configure the Host-only adapter via File > Host Network Manager, create new adapter with IPv4 `20.0.0.1`, mask `255.255.255.0` and DHCP off.
+      * **If you get an error on Linux:** create `/etc/vbox/networks.conf` with content `* 20.0.0.0/24` and retry.
 
 
 ## How to use the VM?
 
-1. First make sure you've added the devbox's IP to your `hosts` file on your host machine e.g. `10.10.0.2 devbox.test`
+1. First make sure you've added the devbox's IP to your `hosts` file on your host machine e.g. `20.0.0.2 devbox.test`
 2. Start it (headless mode recommended)
 3. Connect to it via SSH: `dev@devbox.test`
 4. Mount the filesystem from devbox to your host: `sshfs -o idmap=user dev@devbox.test:/srv/http /local/dir`

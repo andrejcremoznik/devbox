@@ -38,7 +38,7 @@ Name=${nat_adapter}
 [Network]
 DHCP=ipv4" > /etc/systemd/network/dhcp.network
 
-read -e -i "10.10.0.2" -r -p "IP for this devbox: " vmIP # the IP depends on VM adapter configuration
+read -e -i "20.0.0.2" -r -p "IP for this devbox: " vmIP # the IP depends on VM adapter configuration
 
 echo "[Match]
 Name=${host_adapter}
@@ -102,7 +102,7 @@ grub-install --target=i386-pc "/dev/${disk}"
 echo "GRUB_DEFAULT=0
 GRUB_TIMEOUT=1
 GRUB_DISTRIBUTOR=\"Arch\"
-GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet nowatchdog\"
+GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 nowatchdog\"
 GRUB_CMDLINE_LINUX=\"\"
 GRUB_PRELOAD_MODULES=\"part_msdos\"
 GRUB_TIMEOUT_STYLE=hidden
@@ -180,7 +180,7 @@ alias cp='cp -i'
 alias mv='mv -i'
 alias ram='ps axch -o cmd:15,%mem --sort=-%mem | head'
 alias reboot='sudo systemctl reboot'
-alias shutdown='sudo systemctl poweroff'
+alias off='sudo systemctl poweroff'
 
 # Fuzzy finder
 source /usr/share/fzf/key-bindings.bash
@@ -235,21 +235,21 @@ echo "user http http;
 worker_processes auto;
 worker_rlimit_nofile 8192;
 events { worker_connections 8000; }
+error_log /var/log/nginx/error.log error;
+
 http {
-  include              mime.types;
-  default_type         application/octet-stream;
-  charset              utf-8;
-  charset_types        text/css text/plain text/vnd.wap.wml text/javascript text/markdown text/calendar text/x-component text/vcard text/cache-manifest text/vtt application/json application/manifest+json;
-  index                index.html index.php;
-  log_format  main     '\$remote_addr - \$remote_user [\$time_local] \"\$request\" \$status \$body_bytes_sent \"\$http_referer\" \"\$http_user_agent\" \"\$http_x_forwarded_for\"';
-  access_log           /var/log/nginx/access.log main;
-  error_log            /var/log/nginx/error.log error;
+  include mime.types;
+  default_type application/octet-stream;
+  charset utf-8;
+  charset_types text/css text/plain text/javascript text/markdown text/calendar text/x-component text/vcard text/cache-manifest text/vtt application/json application/manifest+json;
+  index index.html index.php;
+  access_log off;
   client_max_body_size 20m;
-  keepalive_timeout    20s;
-  sendfile             on;
-  tcp_nopush           on;
-  gzip                 off;
-  types_hash_max_size  4096;
+  keepalive_timeout 20s;
+  sendfile on;
+  tcp_nopush on;
+  gzip off;
+  types_hash_max_size 4096;
   server {
     listen 80 default_server;
     return 444;
