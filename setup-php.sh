@@ -15,17 +15,18 @@ post_max_size = 20M
 upload_max_filesize = 10M
 
 # Additional built-in extensions
-extension=calendar.so
-extension=exif.so
-extension=gd.so
-extension=gettext.so
-extension=iconv.so
-extension=intl.so
+extension = calendar.so
+extension = exif.so
+extension = gd.so
+extension = gettext.so
+extension = iconv.so
+extension = intl.so
 
 [Date]
 date.timezone = \"${tz}\"" > /etc/php/conf.d/00-devbox.ini
 
-echo "extension=imagick" > /etc/php/conf.d/imagick.ini
+echo "extension = imagick
+imagick.skip_version_check = 1" > /etc/php/conf.d/imagick.ini
 
 systemctl start php-fpm.service
 systemctl enable php-fpm.service

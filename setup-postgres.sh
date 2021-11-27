@@ -15,8 +15,8 @@ read -r -p "Install PHP-FPM extension? (y/n): " withPhp
 
 pacman -S --noconfirm php-pgsql
 
-echo "extension=pdo_pgsql.so
-extension=pgsql.so" > /etc/php/conf.d/pgsql.ini
+echo "extension = pdo_pgsql.so
+extension = pgsql.so" > /etc/php/conf.d/pgsql.ini
 
 systemctl restart php-fpm.service
 

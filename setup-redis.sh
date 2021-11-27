@@ -15,8 +15,8 @@ read -r -p "Install PHP-FPM extension? (y/n): " withPhp
 
 pacman -S --noconfirm php-redis php-igbinary
 
-echo "extension=redis.so" > /etc/php/conf.d/redis.ini
-echo "extension=igbinary.so" > /etc/php/conf.d/igbinary.ini
+echo "extension = redis.so" > /etc/php/conf.d/redis.ini
+echo "extension = igbinary.so" > /etc/php/conf.d/igbinary.ini
 
 systemctl restart php-fpm.service
 

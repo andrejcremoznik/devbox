@@ -10,8 +10,8 @@ mysql_secure_installation
 read -r -p "Install PHP-FPM extension? (y/n): " withPhp
 [ "${withPhp}" != "y" ] && { echo "==> Done."; exit 0; }
 
-echo "extension=mysqli.so
-extension=pdo_mysql.so" > /etc/php/conf.d/mysql.ini
+echo "extension = mysqli.so
+extension = pdo_mysql.so" > /etc/php/conf.d/mysql.ini
 
 systemctl restart php-fpm.service
 

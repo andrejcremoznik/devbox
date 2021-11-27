@@ -120,12 +120,9 @@ sed -i "s/relatime/noatime/g" /etc/fstab
 
 
 # Set smaller journal size
-mkdir -p /etc/systemd/journal.conf.d
+mkdir -p /etc/systemd/journald.conf.d
 echo "[Journal]
-SystemMaxUse=8M" > /etc/systemd/journal.conf.d/journal-size.conf
-systemctl stop systemd-journald
-rm -fr /var/log/journal/*
-systemctl start systemd-journald
+SystemMaxUse=8M" > /etc/systemd/journald.conf.d/size.conf
 
 
 # Install software
@@ -142,7 +139,8 @@ useradd -m -G http -s /bin/bash dev
 echo "Password for the dev user"
 passwd dev
 
-echo "dev ALL=(ALL) ALL" >> /etc/sudoers
+echo "dev ALL=(ALL) ALL" >> /etc/sudoers.d/sudoers
+chmod 440 /etc/sudoers.d/sudoers
 
 # Dev user configuration
 mkdir -p /home/dev/{.ssh,bin}
@@ -218,8 +216,7 @@ chown -R dev:dev /home/dev
 
 
 # SSHD configuration
-echo "Protocol 2
-PasswordAuthentication yes
+echo "PasswordAuthentication yes
 ChallengeResponseAuthentication no
 UsePAM yes
 AllowAgentForwarding yes
@@ -267,11 +264,10 @@ echo "<!DOCTYPE html>
 chown -R dev:dev /srv/http
 
 echo "server {
-  listen      [::]:80;
-  listen      80;
+  listen 80;
   server_name ${hName}.test;
-  root        /srv/http/${hName}.test;
-  access_log  off;
+  root /srv/http/${hName}.test;
+  access_log off;
 }" > "/etc/nginx/sites/${hName}.test.conf"
 
 systemctl enable nginx.service
